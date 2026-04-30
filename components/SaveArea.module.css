@@ -1,0 +1,54 @@
+.wrap { display: flex; flex-direction: column; gap: 4px; }
+
+.row { display: flex; align-items: center; gap: 6px; }
+
+.input {
+  font-family: var(--mono);
+  font-size: 12px;
+  width: 190px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 5px 10px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.input:focus { border-color: var(--accent); }
+
+.eyeBtn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px 7px;
+  cursor: pointer;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  transition: border-color 0.15s;
+}
+.eyeBtn:hover { border-color: var(--border-mid); color: var(--text); }
+
+.btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+  border-radius: var(--radius);
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.btnAccent {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 500;
+}
+.btnAccent:hover:not(:disabled) { background: var(--accent-mid); border-color: var(--accent-mid); }
+
+.error { font-size: 11px; color: var(--danger); }
