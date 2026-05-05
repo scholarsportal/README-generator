@@ -6,7 +6,10 @@ import type { Variable } from '@/lib/types'
 const USE_MOCK = process.env.USE_MOCK === 'true'
 
 export async function GET(req: NextRequest) {
-  const fileId = req.nextUrl.searchParams.get('fileId')
+  const fileId        = req.nextUrl.searchParams.get('fileId')
+  const signedUrlBase = req.nextUrl.searchParams.get('signedUrlBase') // base signed URL, fileId appended
+  const token         = req.nextUrl.searchParams.get('token') || undefined
+
   if (!fileId) return NextResponse.json({ message: 'Missing fileId' }, { status: 400 })
 
   if (USE_MOCK) {
@@ -16,10 +19,13 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const res = await borealisFetch(`/api/v1/datafiles/${fileId}/dataTables`)
+    const res = signedUrlBase
+      ? await fetch(`${signedUrlBase}/${fileId}/dataTables`)
+      : await borealisFetch(`/api/v1/datafiles/${fileId}/dataTables`, token)
+
     if (!res.ok) return NextResponse.json(null)
 
-    const json = await res.json()
+    const json    = await res.json()
     const rawVars = json.data?.[0]?.dataVariables || []
     const variables: Variable[] = rawVars.map(
       (v: { name: string; label?: string; variableFormatType?: { name: string }; type?: string }) => ({

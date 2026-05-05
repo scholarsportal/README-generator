@@ -5,9 +5,10 @@ import styles from './SaveArea.module.css'
 
 interface SaveAreaProps {
   onSave: (token: string) => Promise<void>
+  hasSignedUrl: boolean
 }
 
-export default function SaveArea({ onSave }: SaveAreaProps) {
+export default function SaveArea({ onSave, hasSignedUrl }: SaveAreaProps) {
   const [token, setToken]     = useState('')
   const [show, setShow]       = useState(false)
   const [saving, setSaving]   = useState(false)
@@ -15,7 +16,10 @@ export default function SaveArea({ onSave }: SaveAreaProps) {
   const [error, setError]     = useState('')
 
   async function handleSave() {
-    if (!token.trim()) { setError('Enter your Borealis API token.'); return }
+    if (!hasSignedUrl && !token.trim()) {
+      setError('Enter your Borealis API token.')
+      return
+    }
     setError('')
     setSaving(true)
     try {
@@ -33,16 +37,20 @@ export default function SaveArea({ onSave }: SaveAreaProps) {
     <div className={styles.wrap}>
       {error && <span className={styles.error}>{error}</span>}
       <div className={styles.row}>
-        <input
-          type={show ? 'text' : 'password'}
-          className={styles.input}
-          value={token}
-          onChange={(e) => setToken(e.target.value)}
-          placeholder="Borealis API token"
-        />
-        <button className={styles.eyeBtn} onClick={() => setShow((s) => !s)} title="Show/hide token">
-          <EyeIcon crossed={show} />
-        </button>
+        {!hasSignedUrl && (
+          <>
+            <input
+              type={show ? 'text' : 'password'}
+              className={styles.input}
+              value={token}
+              onChange={(e) => setToken(e.target.value)}
+              placeholder="Borealis API token"
+            />
+            <button className={styles.eyeBtn} onClick={() => setShow((s) => !s)} title="Show/hide token">
+              <EyeIcon crossed={show} />
+            </button>
+          </>
+        )}
         <button
           className={`${styles.btn} ${styles.btnAccent}`}
           onClick={handleSave}

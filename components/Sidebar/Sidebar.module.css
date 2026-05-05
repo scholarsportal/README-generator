@@ -211,3 +211,9 @@
 .toggleItem input[type='checkbox'] { width: 13px; height: 13px; accent-color: var(--accent); cursor: pointer; }
 
 .divider { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
+
+.hint {
+  font-size: 11px;
+  color: var(--hint);
+  line-height: 1.4;
+}

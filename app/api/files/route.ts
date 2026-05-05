@@ -6,8 +6,13 @@ import type { DataFile } from '@/lib/types'
 const USE_MOCK = process.env.USE_MOCK === 'true'
 
 export async function GET(req: NextRequest) {
-  const pid = req.nextUrl.searchParams.get('pid')
-  if (!pid) return NextResponse.json({ message: 'Missing pid' }, { status: 400 })
+  const pid       = req.nextUrl.searchParams.get('pid')
+  const signedUrl = req.nextUrl.searchParams.get('signedUrl')
+  const token     = req.nextUrl.searchParams.get('token') || undefined
+
+  if (!pid && !signedUrl) {
+    return NextResponse.json({ message: 'Missing pid or signedUrl' }, { status: 400 })
+  }
 
   if (USE_MOCK) {
     await new Promise((r) => setTimeout(r, 200))
@@ -15,10 +20,14 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const res = await borealisFetch(
-      `/api/v1/datasets/:persistentId/versions/:latest/files?persistentId=${encodeURIComponent(pid)}`
-    )
-    if (!res.ok) return NextResponse.json([], { status: 200 }) // return empty on error, not fatal
+    const res = signedUrl
+      ? await fetch(signedUrl)
+      : await borealisFetch(
+          `/api/v1/datasets/:persistentId/versions/:latest/files?persistentId=${encodeURIComponent(pid!)}`,
+          token
+        )
+
+    if (!res.ok) return NextResponse.json([], { status: 200 })
 
     const json = await res.json()
     const files: DataFile[] = (json.data || []).map(

@@ -11,7 +11,15 @@ export interface DatasetMeta {
   year: string
   license: string
   version: string
-  signedBase?: string // set when launched via Dataverse signed URL
+}
+
+// ── Signed URLs (passed by Dataverse when launching as external tool) ─────────
+
+export interface SignedUrls {
+  getDatasetMetadata?: string
+  getFiles?: string
+  getVariables?: string  // base URL — fileId appended at call time
+  addFile?: string
 }
 
 // ── Files ─────────────────────────────────────────────────────────────────────

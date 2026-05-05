@@ -6,8 +6,13 @@ import type { DatasetMeta } from '@/lib/types'
 const USE_MOCK = process.env.USE_MOCK === 'true'
 
 export async function GET(req: NextRequest) {
-  const pid = req.nextUrl.searchParams.get('pid')
-  if (!pid) return NextResponse.json({ message: 'Missing pid' }, { status: 400 })
+  const pid       = req.nextUrl.searchParams.get('pid')
+  const signedUrl = req.nextUrl.searchParams.get('signedUrl')
+  const token     = req.nextUrl.searchParams.get('token') || undefined
+
+  if (!pid && !signedUrl) {
+    return NextResponse.json({ message: 'Missing pid or signedUrl' }, { status: 400 })
+  }
 
   if (USE_MOCK) {
     await new Promise((r) => setTimeout(r, 400))
@@ -15,9 +20,14 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const res = await borealisFetch(
-      `/api/v1/datasets/:persistentId/?persistentId=${encodeURIComponent(pid)}`
-    )
+    // prefer signed URL if provided (works for draft/unpublished datasets)
+    const res = signedUrl
+      ? await fetch(signedUrl)
+      : await borealisFetch(
+          `/api/v1/datasets/:persistentId/?persistentId=${encodeURIComponent(pid!)}`,
+          token
+        )
+
     if (!res.ok) {
       const body = await res.json().catch(() => ({}))
       return NextResponse.json(
@@ -26,7 +36,7 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    const json = await res.json()
+    const json   = await res.json()
     const latest = json.data.latestVersion
     const fields: Record<string, unknown>[] = latest.metadataBlocks?.citation?.fields || []
 
@@ -37,12 +47,7 @@ export async function GET(req: NextRequest) {
       if (!f) return ''
       if (f.typeClass === 'compound') {
         return (f.value as Record<string, { value: string }>[])
-          .map((v) =>
-            Object.values(v)
-              .map((sub) => sub.value)
-              .filter(Boolean)
-              .join(', ')
-          )
+          .map((v) => Object.values(v).map((sub) => sub.value).filter(Boolean).join(', '))
           .join('; ')
       }
       if (Array.isArray(f.value)) return (f.value as string[]).join(', ')
@@ -55,7 +60,7 @@ export async function GET(req: NextRequest) {
       description: field('dsDescription'),
       keywords:    field('keyword'),
       subject:     field('subject'),
-      doi:         json.data.persistentUrl || pid,
+      doi:         json.data.persistentUrl || pid || '',
       publisher:   json.data.publisher || 'Borealis',
       year:        latest.releaseTime ? new Date(latest.releaseTime).getFullYear().toString() : '',
       license:     latest.license?.name || '',

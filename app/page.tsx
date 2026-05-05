@@ -3,9 +3,9 @@
 import { Suspense } from 'react'
 import { useState, useCallback, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import type { DatasetMeta, DataFile, Section, Tab, Status } from '@/lib/types'
+import type { DatasetMeta, DataFile, Section, Tab, Status, SignedUrls } from '@/lib/types'
 import { DEFAULT_SECTIONS } from '@/lib/types'
-import { fetchDatasetMeta, fetchFiles, fetchVariables, saveReadme } from '@/lib/borealis'
+import { fetchDatasetMeta, fetchFiles, fetchVariables, saveReadme, parseSignedUrls } from '@/lib/borealis'
 import { generateReadme, isTabular } from '@/lib/template'
 import Header from '@/components/Header'
 import Sidebar from '@/components/Sidebar/Sidebar'
@@ -27,31 +27,35 @@ function App() {
   const searchParams = useSearchParams()
 
   // ── dataset state ──
-  const [pid, setPid]             = useState(searchParams.get('datasetPid') || DEFAULT_PID)
-  const [meta, setMeta]           = useState<DatasetMeta | null>(null)
-  const [files, setFiles]         = useState<DataFile[]>([])
+  const [pid, setPid]               = useState(searchParams.get('datasetPid') || DEFAULT_PID)
+  const [token, setToken]           = useState('')  // fallback for when no signed URLs
+  const [signedUrls, setSignedUrls] = useState<SignedUrls | undefined>(undefined)
+  const [meta, setMeta]             = useState<DatasetMeta | null>(null)
+  const [files, setFiles]           = useState<DataFile[]>([])
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
-  const [fetching, setFetching]   = useState(false)
+  const [fetching, setFetching]     = useState(false)
   const [fetchError, setFetchError] = useState('')
 
   // ── readme state ──
-  const [sections, setSections]   = useState<Section[]>(DEFAULT_SECTIONS)
-  const [markdown, setMarkdown]   = useState('')
+  const [sections, setSections]     = useState<Section[]>(DEFAULT_SECTIONS)
+  const [markdown, setMarkdown]     = useState('')
   const [generating, setGenerating] = useState(false)
 
   // ── ui state ──
-  const [tab, setTab]             = useState<Tab>('preview')
-  const [status, setStatus]       = useState<Status>({ message: 'ready — fetch a dataset to begin', state: 'idle' })
+  const [tab, setTab]               = useState<Tab>('preview')
+  const [status, setStatus]         = useState<Status>({ message: 'ready — fetch a dataset to begin', state: 'idle' })
 
-  // auto-fetch on load if pid in query params
+  // parse signed URLs from query params on load
   useEffect(() => {
-    if (searchParams.get('datasetPid')) handleFetch()
+    const signed = parseSignedUrls(searchParams)
+    if (signed) setSignedUrls(signed)
+    if (searchParams.get('datasetPid')) handleFetch(signed)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // ── fetch ──────────────────────────────────────────────────────────────────
 
-  async function handleFetch() {
+  async function handleFetch(signed?: SignedUrls) {
     if (!pid.trim()) return
     setFetching(true)
     setFetchError('')
@@ -61,10 +65,13 @@ function App() {
     setSelectedIds(new Set())
     setMarkdown('')
 
+    const resolvedSigned = signed ?? signedUrls
+    const resolvedToken  = token || undefined
+
     try {
       const [metaData, fileData] = await Promise.all([
-        fetchDatasetMeta(pid),
-        fetchFiles(pid),
+        fetchDatasetMeta(pid, resolvedSigned, resolvedToken),
+        fetchFiles(pid, resolvedSigned, resolvedToken),
       ])
       setMeta(metaData)
       setFiles(fileData)
@@ -108,25 +115,18 @@ function App() {
 
     const selectedFiles = files.filter((f) => selectedIds.has(f.id))
     const tabularFiles  = sections.includes('variables') ? selectedFiles.filter(isTabular) : []
+    const resolvedToken = token || undefined
 
-    // fetch variable metadata for each tabular file
     const variableMap = new Map<number, Awaited<ReturnType<typeof fetchVariables>>>()
     for (const f of tabularFiles) {
       setStatus({ message: `fetching variables for ${f.name}…`, state: 'active' })
-      const vars = await fetchVariables(f.id)
+      const vars = await fetchVariables(f.id, signedUrls, resolvedToken)
       variableMap.set(f.id, vars)
     }
 
     setStatus({ message: 'generating README…', state: 'active' })
 
-    const md = generateReadme({
-      meta,
-      selectedFiles,
-      allFiles: files,
-      sections,
-      variableMap,
-    })
-
+    const md = generateReadme({ meta, selectedFiles, allFiles: files, sections, variableMap })
     setMarkdown(md)
     setStatus({ message: 'README generated', state: 'done' })
     setGenerating(false)
@@ -150,10 +150,10 @@ function App() {
 
   // ── save to dataset ────────────────────────────────────────────────────────
 
-  async function handleSave(token: string) {
+  async function handleSave(saveToken: string) {
     setStatus({ message: 'uploading README to Borealis…', state: 'active' })
     try {
-      await saveReadme(pid, token, markdown)
+      await saveReadme(pid, saveToken, markdown, signedUrls?.addFile)
       setStatus({ message: 'README saved to dataset ✓', state: 'done' })
     } catch (e) {
       setStatus({ message: String(e), state: 'error' })
@@ -169,17 +169,16 @@ function App() {
         hasReadme={!!markdown}
         onCopy={handleCopy}
         onDownload={handleDownload}
-        saveArea={
-          markdown ? (
-            <SaveArea onSave={handleSave} />
-          ) : undefined
-        }
+        saveArea={markdown ? <SaveArea onSave={handleSave} hasSignedUrl={!!signedUrls?.addFile} /> : undefined}
       />
       <div className={styles.layout}>
         <Sidebar
           pid={pid}
           onPidChange={setPid}
-          onFetch={handleFetch}
+          token={token}
+          onTokenChange={setToken}
+          hasSignedUrls={!!signedUrls}
+          onFetch={() => handleFetch()}
           fetching={fetching}
           meta={meta}
           files={files}

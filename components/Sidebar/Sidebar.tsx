@@ -10,6 +10,9 @@ import styles from './Sidebar.module.css'
 interface SidebarProps {
   pid: string
   onPidChange: (pid: string) => void
+  token: string
+  onTokenChange: (t: string) => void
+  hasSignedUrls: boolean
   onFetch: () => void
   fetching: boolean
   meta: DatasetMeta | null
@@ -36,7 +39,8 @@ const SECTION_LABELS: Record<Section, string> = {
 }
 
 export default function Sidebar({
-  pid, onPidChange, onFetch, fetching,
+  pid, onPidChange, token, onTokenChange, hasSignedUrls,
+  onFetch, fetching,
   meta, files, selectedIds, onToggleFile, onToggleAll,
   sections, onToggleSection,
   onGenerate, generating,
@@ -60,6 +64,16 @@ export default function Sidebar({
             placeholder="doi:10.5683/SP3/…"
             onKeyDown={(e) => e.key === 'Enter' && onFetch()}
           />
+          {/* Token field — only shown when not launched via signed URL */}
+          {!hasSignedUrls && (
+            <input
+              type="password"
+              className={styles.input}
+              value={token}
+              onChange={(e) => onTokenChange(e.target.value)}
+              placeholder="API Token"
+            />
+          )}
           <button
             className={`${styles.btn} ${styles.btnFull}`}
             onClick={onFetch}
@@ -67,6 +81,11 @@ export default function Sidebar({
           >
             {fetching ? 'fetching…' : 'fetch from Borealis'}
           </button>
+          {!hasSignedUrls && (
+            <span className={styles.hint}>
+              API token only needed for unpublished datasets
+            </span>
+          )}
         </div>
 
         {/* Error */}
