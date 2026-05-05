@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useState, useCallback, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import type { DatasetMeta, DataFile, Section, Tab, Status } from '@/lib/types'
@@ -15,6 +16,14 @@ import styles from './page.module.css'
 const DEFAULT_PID = 'doi:10.5683/SP3/7HWSTS'
 
 export default function Home() {
+  return (
+    <Suspense>
+      <App />
+    </Suspense>
+  )
+}
+
+function App() {
   const searchParams = useSearchParams()
 
   // ── dataset state ──
