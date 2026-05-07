@@ -217,3 +217,97 @@
   color: var(--hint);
   line-height: 1.4;
 }
+
+/* ── generation mode toggle ── */
+.modeToggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.modeBtn {
+  font-family: var(--mono);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+}
+.modeBtn:hover { border-color: var(--border-mid); }
+.modeBtnActive {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+}
+
+.modeBtnTitle {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+}
+.modeBtnSub {
+  font-size: 10px;
+  color: var(--hint);
+  line-height: 1.3;
+}
+
+/* ── tier blocks ── */
+.tierBlock { margin-bottom: 0.75rem; }
+
+.tierLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hint);
+  margin-bottom: 5px;
+}
+
+.tierDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── basic summary ── */
+.basicSummary {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.basicSummaryTitle {
+  font-size: 11px;
+  color: var(--hint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+
+.basicSummaryItem {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.basicDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ea9999;
+  flex-shrink: 0;
+}

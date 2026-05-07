@@ -3,8 +3,8 @@
 import { Suspense } from 'react'
 import { useState, useCallback, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import type { DatasetMeta, DataFile, Section, Tab, Status, SignedUrls } from '@/lib/types'
-import { DEFAULT_SECTIONS } from '@/lib/types'
+import type { DatasetMeta, DataFile, Section, Tab, Status, SignedUrls, GenerationMode } from '@/lib/types'
+import { PINK_SECTIONS, DEFAULT_SECTIONS } from '@/lib/types'
 import { fetchDatasetMeta, fetchFiles, fetchVariables, saveReadme, parseSignedUrls } from '@/lib/borealis'
 import { generateReadme, isTabular } from '@/lib/template'
 import Header from '@/components/Header'
@@ -28,7 +28,7 @@ function App() {
 
   // ── dataset state ──
   const [pid, setPid]               = useState(searchParams.get('datasetPid') || DEFAULT_PID)
-  const [token, setToken]           = useState('')  // fallback for when no signed URLs
+  const [token, setToken]           = useState('')
   const [signedUrls, setSignedUrls] = useState<SignedUrls | undefined>(undefined)
   const [meta, setMeta]             = useState<DatasetMeta | null>(null)
   const [files, setFiles]           = useState<DataFile[]>([])
@@ -37,6 +37,7 @@ function App() {
   const [fetchError, setFetchError] = useState('')
 
   // ── readme state ──
+  const [mode, setMode]             = useState<GenerationMode>('basic')
   const [sections, setSections]     = useState<Section[]>(DEFAULT_SECTIONS)
   const [markdown, setMarkdown]     = useState('')
   const [generating, setGenerating] = useState(false)
@@ -45,7 +46,6 @@ function App() {
   const [tab, setTab]               = useState<Tab>('preview')
   const [status, setStatus]         = useState<Status>({ message: 'ready — fetch a dataset to begin', state: 'idle' })
 
-  // parse signed URLs from query params on load
   useEffect(() => {
     const signed = parseSignedUrls(searchParams)
     if (signed) setSignedUrls(signed)
@@ -99,6 +99,14 @@ function App() {
     setSelectedIds(checked ? new Set(files.map((f) => f.id)) : new Set())
   }, [files])
 
+  // ── mode change ────────────────────────────────────────────────────────────
+
+  const handleModeChange = useCallback((m: GenerationMode) => {
+    setMode(m)
+    // advanced: default to pink sections checked, green unchecked
+    if (m === 'advanced') setSections(DEFAULT_SECTIONS)
+  }, [])
+
   // ── section toggles ────────────────────────────────────────────────────────
 
   const handleToggleSection = useCallback((s: Section) => {
@@ -113,8 +121,10 @@ function App() {
     if (!meta) return
     setGenerating(true)
 
+    // basic mode always uses pink sections only
+    const activeSections: Section[] = mode === 'basic' ? PINK_SECTIONS : sections
     const selectedFiles = files.filter((f) => selectedIds.has(f.id))
-    const tabularFiles  = sections.includes('variables') ? selectedFiles.filter(isTabular) : []
+    const tabularFiles  = activeSections.includes('variables') ? selectedFiles.filter(isTabular) : []
     const resolvedToken = token || undefined
 
     const variableMap = new Map<number, Awaited<ReturnType<typeof fetchVariables>>>()
@@ -126,25 +136,20 @@ function App() {
 
     setStatus({ message: 'generating README…', state: 'active' })
 
-    const md = generateReadme({ meta, selectedFiles, allFiles: files, sections, variableMap })
+    const md = generateReadme({ meta, selectedFiles, allFiles: files, sections: activeSections, variableMap })
     setMarkdown(md)
-    setStatus({ message: 'README generated', state: 'done' })
+    setStatus({ message: `README generated (${mode} mode)`, state: 'done' })
     setGenerating(false)
   }
 
   // ── copy / download ────────────────────────────────────────────────────────
 
-  function handleCopy() {
-    navigator.clipboard.writeText(markdown)
-  }
+  function handleCopy() { navigator.clipboard.writeText(markdown) }
 
   function handleDownload() {
     const name = (meta?.title || 'README').replace(/[^a-z0-9]/gi, '_').slice(0, 40)
     const blob = new Blob([markdown], { type: 'text/markdown' })
-    const a = Object.assign(document.createElement('a'), {
-      href: URL.createObjectURL(blob),
-      download: `README_${name}.md`,
-    })
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `README_${name}.md` })
     a.click()
   }
 
@@ -160,8 +165,6 @@ function App() {
       throw e
     }
   }
-
-  // ── render ─────────────────────────────────────────────────────────────────
 
   return (
     <div className={styles.app}>
@@ -187,6 +190,8 @@ function App() {
           onToggleAll={handleToggleAll}
           sections={sections}
           onToggleSection={handleToggleSection}
+          mode={mode}
+          onModeChange={handleModeChange}
           onGenerate={handleGenerate}
           generating={generating}
           error={fetchError}

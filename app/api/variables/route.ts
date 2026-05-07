@@ -4,15 +4,16 @@ import { MOCK_VARIABLES } from '@/lib/mock'
 import type { Variable } from '@/lib/types'
 
 const USE_MOCK = process.env.USE_MOCK === 'true'
+const MOCK_FILE_IDS = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
 
 export async function GET(req: NextRequest) {
   const fileId        = req.nextUrl.searchParams.get('fileId')
-  const signedUrlBase = req.nextUrl.searchParams.get('signedUrlBase') // base signed URL, fileId appended
+  const signedUrlBase = req.nextUrl.searchParams.get('signedUrlBase')
   const token         = req.nextUrl.searchParams.get('token') || undefined
 
   if (!fileId) return NextResponse.json({ message: 'Missing fileId' }, { status: 400 })
 
-  if (USE_MOCK) {
+  if (USE_MOCK && MOCK_FILE_IDS.has(Number(fileId))) {
     await new Promise((r) => setTimeout(r, 100))
     const vars = MOCK_VARIABLES[Number(fileId)] || null
     return NextResponse.json(vars)

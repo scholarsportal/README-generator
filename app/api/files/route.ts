@@ -4,6 +4,7 @@ import { MOCK_FILES } from '@/lib/mock'
 import type { DataFile } from '@/lib/types'
 
 const USE_MOCK = process.env.USE_MOCK === 'true'
+const DEFAULT_PID = 'doi:10.5683/SP3/7HWSTS'
 
 export async function GET(req: NextRequest) {
   const pid       = req.nextUrl.searchParams.get('pid')
@@ -14,7 +15,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ message: 'Missing pid or signedUrl' }, { status: 400 })
   }
 
-  if (USE_MOCK) {
+  if (USE_MOCK && pid === DEFAULT_PID && !signedUrl) {
     await new Promise((r) => setTimeout(r, 200))
     return NextResponse.json(MOCK_FILES)
   }
