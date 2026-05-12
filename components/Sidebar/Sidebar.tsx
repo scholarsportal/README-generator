@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import type { DatasetMeta, DataFile, Section, GenerationMode } from '@/lib/types'
+import type { DatasetMeta, DataFile, Section, GenerationMode, CustomSection } from '@/lib/types'
 import { SECTION_META, PINK_SECTIONS, GREEN_SECTIONS } from '@/lib/types'
 import { formatBytes, fileExt, buildTree } from '@/lib/template'
 import type { TreeNode } from '@/lib/types'
@@ -24,6 +24,10 @@ interface SidebarProps {
   onToggleSection: (s: Section) => void
   mode: GenerationMode
   onModeChange: (m: GenerationMode) => void
+  customSections: CustomSection[]
+  onAddCustomSection: (section: CustomSection) => void
+  onRemoveCustomSection: (id: string) => void
+  onUpdateCustomSection: (id: string, field: 'title' | 'content', value: string) => void
   onGenerate: () => void
   generating: boolean
   error: string
@@ -35,6 +39,7 @@ export default function Sidebar({
   meta, files, selectedIds, onToggleFile, onToggleAll,
   sections, onToggleSection,
   mode, onModeChange,
+  customSections, onAddCustomSection, onRemoveCustomSection, onUpdateCustomSection,
   onGenerate, generating,
   error,
 }: SidebarProps) {
@@ -158,6 +163,47 @@ export default function Sidebar({
                 </label>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Custom sections — advanced only */}
+        {mode === 'advanced' && (
+          <div>
+            <div className={styles.tierLabel} style={{ marginBottom: 8 }}>
+              <span className={styles.tierDot} style={{ background: 'var(--border-mid)' }} />
+              Custom sections
+            </div>
+            {customSections.map((cs) => (
+              <div key={cs.id} className={styles.customCard}>
+                <div className={styles.customCardHeader}>
+                  <input
+                    type="text"
+                    className={styles.customTitleInput}
+                    value={cs.title}
+                    onChange={(e) => onUpdateCustomSection(cs.id, 'title', e.target.value)}
+                    placeholder="Section title"
+                  />
+                  <button className={styles.removeBtn} onClick={() => onRemoveCustomSection(cs.id)} title="Remove">
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                      <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+                <textarea
+                  className={styles.customContentInput}
+                  value={cs.content}
+                  onChange={(e) => onUpdateCustomSection(cs.id, 'content', e.target.value)}
+                  placeholder="Section content…"
+                  rows={3}
+                />
+              </div>
+            ))}
+            <button
+              className={`${styles.btn} ${styles.btnFull}`}
+              onClick={() => onAddCustomSection({ id: crypto.randomUUID(), title: '', content: '' })}
+            >
+              + add custom section
+            </button>
           </div>
         )}
 

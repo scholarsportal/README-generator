@@ -311,3 +311,65 @@
   background: #ea9999;
   flex-shrink: 0;
 }
+
+/* ── custom sections ── */
+.customCard {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.customCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.customTitleInput {
+  font-family: var(--mono);
+  font-size: 12px;
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px 8px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.customTitleInput:focus { border-color: var(--accent); }
+
+.customContentInput {
+  font-family: var(--mono);
+  font-size: 12px;
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 8px;
+  color: var(--text);
+  outline: none;
+  resize: vertical;
+  line-height: 1.5;
+  transition: border-color 0.15s;
+}
+.customContentInput:focus { border-color: var(--accent); }
+
+.removeBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--hint);
+  padding: 4px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+.removeBtn:hover { color: var(--danger); }

@@ -3,7 +3,7 @@
 import { Suspense } from 'react'
 import { useState, useCallback, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import type { DatasetMeta, DataFile, Section, Tab, Status, SignedUrls, GenerationMode } from '@/lib/types'
+import type { DatasetMeta, DataFile, Section, Tab, Status, SignedUrls, GenerationMode, CustomSection } from '@/lib/types'
 import { PINK_SECTIONS, DEFAULT_SECTIONS } from '@/lib/types'
 import { fetchDatasetMeta, fetchFiles, fetchVariables, saveReadme, parseSignedUrls } from '@/lib/borealis'
 import { generateReadme, isTabular } from '@/lib/template'
@@ -39,6 +39,7 @@ function App() {
   // ── readme state ──
   const [mode, setMode]             = useState<GenerationMode>('basic')
   const [sections, setSections]     = useState<Section[]>(DEFAULT_SECTIONS)
+  const [customSections, setCustomSections] = useState<CustomSection[]>([])
   const [markdown, setMarkdown]     = useState('')
   const [generating, setGenerating] = useState(false)
 
@@ -115,6 +116,20 @@ function App() {
     )
   }, [])
 
+  // ── custom sections ────────────────────────────────────────────────────────
+
+  const handleAddCustomSection = useCallback((section: CustomSection) => {
+    setCustomSections((prev) => [...prev, section])
+  }, [])
+
+  const handleRemoveCustomSection = useCallback((id: string) => {
+    setCustomSections((prev) => prev.filter((s) => s.id !== id))
+  }, [])
+
+  const handleUpdateCustomSection = useCallback((id: string, field: 'title' | 'content', value: string) => {
+    setCustomSections((prev) => prev.map((s) => s.id === id ? { ...s, [field]: value } : s))
+  }, [])
+
   // ── generate ───────────────────────────────────────────────────────────────
 
   async function handleGenerate() {
@@ -136,7 +151,7 @@ function App() {
 
     setStatus({ message: 'generating README…', state: 'active' })
 
-    const md = generateReadme({ meta, selectedFiles, allFiles: files, sections: activeSections, variableMap })
+    const md = generateReadme({ meta, selectedFiles, allFiles: files, sections: activeSections, variableMap, customSections: mode === 'advanced' ? customSections : [] })
     setMarkdown(md)
     setStatus({ message: `README generated (${mode} mode)`, state: 'done' })
     setGenerating(false)
@@ -146,10 +161,11 @@ function App() {
 
   function handleCopy() { navigator.clipboard.writeText(markdown) }
 
-  function handleDownload() {
+  function handleDownload(ext: 'md' | 'txt') {
     const name = (meta?.title || 'README').replace(/[^a-z0-9]/gi, '_').slice(0, 40)
-    const blob = new Blob([markdown], { type: 'text/markdown' })
-    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `README_${name}.md` })
+    const mimeType = ext === 'md' ? 'text/markdown' : 'text/plain'
+    const blob = new Blob([markdown], { type: mimeType })
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `README_${name}.${ext}` })
     a.click()
   }
 
@@ -192,6 +208,10 @@ function App() {
           onToggleSection={handleToggleSection}
           mode={mode}
           onModeChange={handleModeChange}
+          customSections={customSections}
+          onAddCustomSection={handleAddCustomSection}
+          onRemoveCustomSection={handleRemoveCustomSection}
+          onUpdateCustomSection={handleUpdateCustomSection}
           onGenerate={handleGenerate}
           generating={generating}
           error={fetchError}

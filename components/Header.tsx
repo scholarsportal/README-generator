@@ -5,7 +5,7 @@ import styles from './Header.module.css'
 interface HeaderProps {
   hasReadme: boolean
   onCopy: () => void
-  onDownload: () => void
+  onDownload: (ext: 'md' | 'txt') => void
   saveArea?: React.ReactNode
 }
 
@@ -23,7 +23,10 @@ export default function Header({ hasReadme, onCopy, onDownload, saveArea }: Head
             <button className={`${styles.btn} ${styles.btnSm}`} onClick={onCopy}>
               copy markdown
             </button>
-            <button className={`${styles.btn} ${styles.btnSm} ${styles.btnAccent}`} onClick={onDownload}>
+            <button className={`${styles.btn} ${styles.btnSm}`} onClick={() => onDownload('txt')}>
+              download .txt
+            </button>
+            <button className={`${styles.btn} ${styles.btnSm} ${styles.btnAccent}`} onClick={() => onDownload('md')}>
               download .md
             </button>
           </>

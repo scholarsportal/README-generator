@@ -138,6 +138,14 @@ export const DEFAULT_SECTIONS: Section[] = PINK_SECTIONS
 
 export type GenerationMode = 'basic' | 'advanced'
 
+// ── Custom sections ───────────────────────────────────────────────────────────
+
+export interface CustomSection {
+  id: string
+  title: string
+  content: string
+}
+
 // ── Status ────────────────────────────────────────────────────────────────────
 
 export type StatusState = 'idle' | 'active' | 'done' | 'error'
