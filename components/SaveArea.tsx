@@ -53,7 +53,7 @@ export default function SaveArea({ onSave, hasSignedUrl }: SaveAreaProps) {
         )}
         <button
           className={`${styles.btn} ${styles.btnAccent}`}
-          onClick={handleSave}
+          //onClick={handleSave}
           disabled={saving}
         >
           {saving ? 'saving…' : saved ? 'saved!' : 'save to dataset'}
