@@ -8,7 +8,7 @@ interface HeaderProps {
   onDownload: (ext: 'md' | 'txt') => void
   saveArea?: React.ReactNode
 }
-
+  
 export default function Header({ hasReadme, onCopy, onDownload, saveArea }: HeaderProps) {
   return (
     <header className={styles.header}>
