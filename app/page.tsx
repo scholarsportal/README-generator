@@ -5,7 +5,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import type { DatasetMeta, DataFile, Section, Tab, Status, SignedUrls, GenerationMode, CustomSection } from '@/lib/types'
 import { PINK_SECTIONS, DEFAULT_SECTIONS } from '@/lib/types'
-import { fetchDatasetMeta, fetchFiles, fetchVariables, saveReadme, parseSignedUrls } from '@/lib/borealis'
+import { fetchDatasetMeta, fetchFiles, fetchVariables, saveReadme, parseSignedUrls, resolveCallback } from '@/lib/borealis'
 import { generateReadme, isTabular } from '@/lib/template'
 import Header from '@/components/Header'
 import Sidebar from '@/components/Sidebar/Sidebar'
@@ -24,10 +24,8 @@ export default function Home() {
 function App() {
   const searchParams = useSearchParams()
 
-  const pid         = searchParams.get('datasetPid') || ''
-  const launchedFromDataverse = !!searchParams.get('datasetPid')
-
   // ── dataset state ──
+  const [pid, setPid]               = useState('')
   const [token, setToken]           = useState('')
   const [signedUrls, setSignedUrls] = useState<SignedUrls | undefined>(undefined)
   const [meta, setMeta]             = useState<DatasetMeta | null>(null)
@@ -46,19 +44,52 @@ function App() {
   // ── ui state ──
   const [tab, setTab]               = useState<Tab>('preview')
   const [status, setStatus]         = useState<Status>({ message: 'loading dataset…', state: 'active' })
+  const [launched, setLaunched]     = useState(false)
 
   useEffect(() => {
-    const signed = parseSignedUrls(searchParams)
-    if (signed) setSignedUrls(signed)
-    if (pid) handleFetch(signed)
-    else setStatus({ message: 'no dataset — open this tool from a Borealis dataset page', state: 'error' })
+    async function init() {
+      const callbackParam = searchParams.get('callback')
+      const directPid     = searchParams.get('datasetPid')
+
+      // ── callback mechanism (primary Dataverse external tool flow) ──
+      if (callbackParam) {
+        setLaunched(true)
+        setStatus({ message: 'connecting to Dataverse…', state: 'active' })
+        try {
+          const { pid: resolvedPid, signedUrls: resolvedSigned } = await resolveCallback(callbackParam)
+          setPid(resolvedPid)
+          setSignedUrls(resolvedSigned)
+          await handleFetch(resolvedPid, resolvedSigned)
+        } catch (e) {
+          setFetchError(String(e))
+          setStatus({ message: 'failed to connect to Dataverse', state: 'error' })
+        }
+        return
+      }
+
+      // ── direct signedUrls in query params (older Dataverse versions) ──
+      if (directPid) {
+        setLaunched(true)
+        const signed = parseSignedUrls(searchParams)
+        if (signed) setSignedUrls(signed)
+        setPid(directPid)
+        await handleFetch(directPid, signed)
+        return
+      }
+
+      // ── not launched from Dataverse ──
+      setLaunched(false)
+      setStatus({ message: 'ready', state: 'idle' })
+    }
+
+    init()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // ── fetch ──────────────────────────────────────────────────────────────────
 
-  async function handleFetch(signed?: SignedUrls) {
-    if (!pid) return
+  async function handleFetch(resolvedPid: string, resolvedSigned?: SignedUrls) {
+    if (!resolvedPid) return
     setFetching(true)
     setFetchError('')
     setStatus({ message: 'fetching dataset metadata…', state: 'active' })
@@ -67,13 +98,12 @@ function App() {
     setSelectedIds(new Set())
     setMarkdown('')
 
-    const resolvedSigned = signed ?? signedUrls
-    const resolvedToken  = token || undefined
+    const resolvedToken = token || undefined
 
     try {
       const [metaData, fileData] = await Promise.all([
-        fetchDatasetMeta(pid, resolvedSigned, resolvedToken),
-        fetchFiles(pid, resolvedSigned, resolvedToken),
+        fetchDatasetMeta(resolvedPid, resolvedSigned, resolvedToken),
+        fetchFiles(resolvedPid, resolvedSigned, resolvedToken),
       ])
       setMeta(metaData)
       setFiles(fileData)
@@ -182,7 +212,7 @@ function App() {
 
   // ── not launched from Dataverse ────────────────────────────────────────────
 
-  if (!launchedFromDataverse) {
+  if (!launched && status.state === 'idle') {
     return (
       <div className={styles.app}>
         <Header hasReadme={false} onCopy={handleCopy} onDownload={handleDownload} />

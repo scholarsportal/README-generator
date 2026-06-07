@@ -84,14 +84,12 @@ export async function borealisFetch(path: string, token?: string) {
   return res
 }
 
-// ── Parse signed URLs from Dataverse query params ────────────────────────────
-// Dataverse passes signed URLs as JSON in the `signedUrls` query param
+// ── Parse signed URLs from Dataverse query params ─────────────────────────────
 
 export function parseSignedUrls(searchParams: URLSearchParams): SignedUrls | undefined {
   const raw = searchParams.get('signedUrls')
   if (!raw) return undefined
   try {
-    // Dataverse passes an array of { name, httpMethod, signedUrl, timeOut }
     const arr = JSON.parse(raw) as { name: string; signedUrl: string }[]
     const map: SignedUrls = {}
     for (const entry of arr) {
@@ -106,3 +104,38 @@ export function parseSignedUrls(searchParams: URLSearchParams): SignedUrls | und
   }
 }
 
+// ── Resolve callback URL (Dataverse external tool callback mechanism) ──────────
+// Dataverse passes a base64-encoded callback URL instead of signedUrls directly.
+// Calling it returns { datasetPid, signedUrls: [...] }
+
+export interface CallbackResult {
+  pid: string
+  signedUrls: SignedUrls
+}
+
+export async function resolveCallback(callbackParam: string): Promise<CallbackResult> {
+  // decode base64 to get the actual callback URL
+  const callbackUrl = atob(callbackParam)
+
+  const res = await fetch(callbackUrl)
+  if (!res.ok) throw new Error(`Callback fetch failed: HTTP ${res.status}`)
+
+  const json = await res.json()
+
+  // extract pid
+  const pid: string = json.datasetPid || json.pid || ''
+
+  // extract signed URLs
+  const arr: { name: string; signedUrl: string }[] = json.signedUrls || []
+  const signedUrls: SignedUrls = {}
+  for (const entry of arr) {
+    if (entry.name === 'getDatasetMetadata') signedUrls.getDatasetMetadata = entry.signedUrl
+    if (entry.name === 'getFiles')           signedUrls.getFiles           = entry.signedUrl
+    if (entry.name === 'getVariables')       signedUrls.getVariables       = entry.signedUrl
+    if (entry.name === 'addFile')            signedUrls.addFile            = entry.signedUrl
+  }
+
+  if (!pid) throw new Error('Callback response did not include a dataset PID.')
+
+  return { pid, signedUrls }
+}
