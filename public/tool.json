@@ -4,7 +4,7 @@
   "toolName": "borealis-readme-gen",
   "scope": "dataset",
   "types": ["explore"],
-  "toolUrl": "https://borealis-readme-gen.vercel.app",
+  "toolUrl": "http://localhost:3000",
   "httpMethod": "GET",
   "toolParameters": {
     "queryParameters": [
@@ -12,31 +12,5 @@
       { "siteUrl": "{siteUrl}" },
       { "locale": "{localeCode}" }
     ]
-  },
-  "allowedApiCalls": [
-    {
-      "name": "getDatasetMetadata",
-      "httpMethod": "GET",
-      "urlTemplate": "/api/v1/datasets/:persistentId/?persistentId={datasetPid}",
-      "timeOut": 30
-    },
-    {
-      "name": "getFiles",
-      "httpMethod": "GET",
-      "urlTemplate": "/api/v1/datasets/:persistentId/versions/:latest/files?persistentId={datasetPid}",
-      "timeOut": 30
-    },
-    {
-      "name": "getVariables",
-      "httpMethod": "GET",
-      "urlTemplate": "/api/v1/datafiles/{fileId}/dataTables",
-      "timeOut": 30
-    },
-    {
-      "name": "addFile",
-      "httpMethod": "POST",
-      "urlTemplate": "/api/v1/datasets/:persistentId/add?persistentId={datasetPid}",
-      "timeOut": 60
-    }
-  ]
+  }
 }

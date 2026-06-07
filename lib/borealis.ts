@@ -1,17 +1,19 @@
 import type { DatasetMeta, DataFile, Variable, SignedUrls } from './types'
 
-const SITE = 'https://borealisdata.ca'
+export const DEFAULT_SITE = 'https://borealisdata.ca'
 
 // ── Dataset metadata ──────────────────────────────────────────────────────────
 
 export async function fetchDatasetMeta(
   pid: string,
   signed?: SignedUrls,
-  token?: string
+  token?: string,
+  siteUrl?: string
 ): Promise<DatasetMeta> {
   const params = new URLSearchParams({ pid })
   if (signed?.getDatasetMetadata) params.set('signedUrl', signed.getDatasetMetadata)
   if (token) params.set('token', token)
+  if (siteUrl) params.set('siteUrl', siteUrl)
 
   const res = await fetch(`/api/dataset?${params}`)
   if (!res.ok) {
@@ -26,11 +28,13 @@ export async function fetchDatasetMeta(
 export async function fetchFiles(
   pid: string,
   signed?: SignedUrls,
-  token?: string
+  token?: string,
+  siteUrl?: string
 ): Promise<DataFile[]> {
   const params = new URLSearchParams({ pid })
   if (signed?.getFiles) params.set('signedUrl', signed.getFiles)
   if (token) params.set('token', token)
+  if (siteUrl) params.set('siteUrl', siteUrl)
 
   const res = await fetch(`/api/files?${params}`)
   if (!res.ok) {
@@ -45,11 +49,13 @@ export async function fetchFiles(
 export async function fetchVariables(
   fileId: number,
   signed?: SignedUrls,
-  token?: string
+  token?: string,
+  siteUrl?: string
 ): Promise<Variable[] | null> {
   const params = new URLSearchParams({ fileId: String(fileId) })
   if (signed?.getVariables) params.set('signedUrlBase', signed.getVariables)
   if (token) params.set('token', token)
+  if (siteUrl) params.set('siteUrl', siteUrl)
 
   const res = await fetch(`/api/variables?${params}`)
   if (!res.ok) return null
@@ -62,12 +68,13 @@ export async function saveReadme(
   pid: string,
   token: string,
   markdown: string,
-  signedUrl?: string
+  signedUrl?: string,
+  siteUrl?: string
 ): Promise<void> {
   const res = await fetch('/api/save', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ pid, token, markdown, signedUrl }),
+    body: JSON.stringify({ pid, token, markdown, signedUrl, siteUrl }),
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
@@ -75,13 +82,13 @@ export async function saveReadme(
   }
 }
 
-// ── Raw Borealis fetch (used server-side in API routes) ───────────────────────
+// ── Raw Dataverse fetch (used server-side in API routes) ──────────────────────
 
-export async function borealisFetch(path: string, token?: string) {
+export async function dataverseFetch(path: string, token?: string, siteUrl?: string) {
+  const base = siteUrl || DEFAULT_SITE
   const headers: Record<string, string> = {}
   if (token) headers['X-Dataverse-key'] = token
-  const res = await fetch(`${SITE}${path}`, { headers })
-  return res
+  return fetch(`${base}${path}`, { headers })
 }
 
 // ── Parse signed URLs from Dataverse query params ─────────────────────────────
@@ -104,9 +111,7 @@ export function parseSignedUrls(searchParams: URLSearchParams): SignedUrls | und
   }
 }
 
-// ── Resolve callback URL (Dataverse external tool callback mechanism) ──────────
-// Dataverse passes a base64-encoded callback URL instead of signedUrls directly.
-// Calling it returns { datasetPid, signedUrls: [...] }
+// ── Resolve callback URL ──────────────────────────────────────────────────────
 
 export interface CallbackResult {
   pid: string
@@ -114,18 +119,13 @@ export interface CallbackResult {
 }
 
 export async function resolveCallback(callbackParam: string): Promise<CallbackResult> {
-  // decode base64 to get the actual callback URL
   const callbackUrl = atob(callbackParam)
-
-  const res = await fetch(callbackUrl)
+  const res = await fetch(`/api/callback?url=${encodeURIComponent(callbackUrl)}`)
   if (!res.ok) throw new Error(`Callback fetch failed: HTTP ${res.status}`)
 
   const json = await res.json()
-
-  // extract pid
   const pid: string = json.datasetPid || json.pid || ''
 
-  // extract signed URLs
   const arr: { name: string; signedUrl: string }[] = json.signedUrls || []
   const signedUrls: SignedUrls = {}
   for (const entry of arr) {
@@ -136,6 +136,5 @@ export async function resolveCallback(callbackParam: string): Promise<CallbackRe
   }
 
   if (!pid) throw new Error('Callback response did not include a dataset PID.')
-
   return { pid, signedUrls }
 }

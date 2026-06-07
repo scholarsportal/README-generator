@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { borealisFetch } from '@/lib/borealis'
+import { dataverseFetch } from '@/lib/borealis'
 import { MOCK_FILES } from '@/lib/mock'
 import type { DataFile } from '@/lib/types'
 
@@ -10,6 +10,7 @@ export async function GET(req: NextRequest) {
   const pid       = req.nextUrl.searchParams.get('pid')
   const signedUrl = req.nextUrl.searchParams.get('signedUrl')
   const token     = req.nextUrl.searchParams.get('token') || undefined
+  const siteUrl   = req.nextUrl.searchParams.get('siteUrl') || undefined
 
   if (!pid && !signedUrl) {
     return NextResponse.json({ message: 'Missing pid or signedUrl' }, { status: 400 })
@@ -23,9 +24,10 @@ export async function GET(req: NextRequest) {
   try {
     const res = signedUrl
       ? await fetch(signedUrl)
-      : await borealisFetch(
+      : await dataverseFetch(
           `/api/v1/datasets/:persistentId/versions/:latest/files?persistentId=${encodeURIComponent(pid!)}`,
-          token
+          token,
+          siteUrl
         )
 
     if (!res.ok) return NextResponse.json([], { status: 200 })

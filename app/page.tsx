@@ -26,6 +26,7 @@ function App() {
 
   // ── dataset state ──
   const [pid, setPid]               = useState('')
+  const [siteUrl, setSiteUrl]       = useState('')
   const [token, setToken]           = useState('')
   const [signedUrls, setSignedUrls] = useState<SignedUrls | undefined>(undefined)
   const [meta, setMeta]             = useState<DatasetMeta | null>(null)
@@ -50,16 +51,17 @@ function App() {
     async function init() {
       const callbackParam = searchParams.get('callback')
       const directPid     = searchParams.get('datasetPid')
+      const directSiteUrl = searchParams.get('siteUrl') || ''
 
-      // ── callback mechanism (primary Dataverse external tool flow) ──
       if (callbackParam) {
         setLaunched(true)
         setStatus({ message: 'connecting to Dataverse…', state: 'active' })
         try {
           const { pid: resolvedPid, signedUrls: resolvedSigned } = await resolveCallback(callbackParam)
           setPid(resolvedPid)
+          setSiteUrl(directSiteUrl)
           setSignedUrls(resolvedSigned)
-          await handleFetch(resolvedPid, resolvedSigned)
+          await handleFetch(resolvedPid, resolvedSigned, directSiteUrl)
         } catch (e) {
           setFetchError(String(e))
           setStatus({ message: 'failed to connect to Dataverse', state: 'error' })
@@ -67,17 +69,16 @@ function App() {
         return
       }
 
-      // ── direct signedUrls in query params (older Dataverse versions) ──
       if (directPid) {
         setLaunched(true)
         const signed = parseSignedUrls(searchParams)
         if (signed) setSignedUrls(signed)
         setPid(directPid)
-        await handleFetch(directPid, signed)
+        setSiteUrl(directSiteUrl)
+        await handleFetch(directPid, signed, directSiteUrl)
         return
       }
 
-      // ── not launched from Dataverse ──
       setLaunched(false)
       setStatus({ message: 'ready', state: 'idle' })
     }
@@ -88,7 +89,7 @@ function App() {
 
   // ── fetch ──────────────────────────────────────────────────────────────────
 
-  async function handleFetch(resolvedPid: string, resolvedSigned?: SignedUrls) {
+  async function handleFetch(resolvedPid: string, resolvedSigned?: SignedUrls, resolvedSiteUrl?: string) {
     if (!resolvedPid) return
     setFetching(true)
     setFetchError('')
@@ -99,11 +100,12 @@ function App() {
     setMarkdown('')
 
     const resolvedToken = token || undefined
+    const site = resolvedSiteUrl || siteUrl || undefined
 
     try {
       const [metaData, fileData] = await Promise.all([
-        fetchDatasetMeta(resolvedPid, resolvedSigned, resolvedToken),
-        fetchFiles(resolvedPid, resolvedSigned, resolvedToken),
+        fetchDatasetMeta(resolvedPid, resolvedSigned, resolvedToken, site),
+        fetchFiles(resolvedPid, resolvedSigned, resolvedToken, site),
       ])
       setMeta(metaData)
       setFiles(fileData)
@@ -131,22 +133,16 @@ function App() {
     setSelectedIds(checked ? new Set(files.map((f) => f.id)) : new Set())
   }, [files])
 
-  // ── mode change ────────────────────────────────────────────────────────────
-
   const handleModeChange = useCallback((m: GenerationMode) => {
     setMode(m)
     if (m === 'advanced') setSections(DEFAULT_SECTIONS)
   }, [])
-
-  // ── section toggles ────────────────────────────────────────────────────────
 
   const handleToggleSection = useCallback((s: Section) => {
     setSections((prev) =>
       prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]
     )
   }, [])
-
-  // ── custom sections ────────────────────────────────────────────────────────
 
   const handleAddCustomSection = useCallback((section: CustomSection) => {
     setCustomSections((prev) => [...prev, section])
@@ -170,11 +166,12 @@ function App() {
     const selectedFiles = files.filter((f) => selectedIds.has(f.id))
     const tabularFiles  = activeSections.includes('variables') ? selectedFiles.filter(isTabular) : []
     const resolvedToken = token || undefined
+    const site = siteUrl || undefined
 
     const variableMap = new Map<number, Awaited<ReturnType<typeof fetchVariables>>>()
     for (const f of tabularFiles) {
       setStatus({ message: `fetching variables for ${f.name}…`, state: 'active' })
-      const vars = await fetchVariables(f.id, signedUrls, resolvedToken)
+      const vars = await fetchVariables(f.id, signedUrls, resolvedToken, site)
       variableMap.set(f.id, vars)
     }
 
@@ -184,8 +181,6 @@ function App() {
     setStatus({ message: `README generated (${mode} mode)`, state: 'done' })
     setGenerating(false)
   }
-
-  // ── copy / download ────────────────────────────────────────────────────────
 
   function handleCopy() { navigator.clipboard.writeText(markdown) }
 
@@ -197,20 +192,16 @@ function App() {
     a.click()
   }
 
-  // ── save to dataset ────────────────────────────────────────────────────────
-
   async function handleSave(saveToken: string) {
     setStatus({ message: 'uploading README to Borealis…', state: 'active' })
     try {
-      await saveReadme(pid, saveToken, markdown, signedUrls?.addFile)
+      await saveReadme(pid, saveToken, markdown, signedUrls?.addFile, siteUrl || undefined)
       setStatus({ message: 'README saved to dataset ✓', state: 'done' })
     } catch (e) {
       setStatus({ message: String(e), state: 'error' })
       throw e
     }
   }
-
-  // ── not launched from Dataverse ────────────────────────────────────────────
 
   if (!launched && status.state === 'idle') {
     return (
