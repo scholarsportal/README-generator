@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { borealisFetch } from '@/lib/borealis'
+import { dataverseFetch } from '@/lib/borealis'
 import { MOCK_VARIABLES } from '@/lib/mock'
 import type { Variable } from '@/lib/types'
 
@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
   try {
     const res = signedUrlBase
       ? await fetch(`${signedUrlBase}/${fileId}/dataTables`)
-      : await borealisFetch(`/api/v1/datafiles/${fileId}/dataTables`, token)
+      : await dataverseFetch(`/api/v1/datafiles/${fileId}/dataTables`, token)
 
     if (!res.ok) return NextResponse.json(null)
 
