@@ -11,11 +11,12 @@ export async function fetchDatasetMeta(
   siteUrl?: string
 ): Promise<DatasetMeta> {
   const params = new URLSearchParams({ pid })
-  if (signed?.getDatasetMetadata) params.set('signedUrl', signed.getDatasetMetadata)
   if (token) params.set('token', token)
   if (siteUrl) params.set('siteUrl', siteUrl)
+  const headers: Record<string, string> = {}
+  if (signed?.getDatasetMetadata) headers['x-signed-url'] = signed.getDatasetMetadata
 
-  const res = await fetch(`/api/dataset?${params}`)
+  const res = await fetch(`/api/dataset?${params}`, { headers })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
     throw new Error((err as { message?: string }).message || `HTTP ${res.status}`)
@@ -32,11 +33,12 @@ export async function fetchFiles(
   siteUrl?: string
 ): Promise<DataFile[]> {
   const params = new URLSearchParams({ pid })
-  if (signed?.getFiles) params.set('signedUrl', signed.getFiles)
   if (token) params.set('token', token)
   if (siteUrl) params.set('siteUrl', siteUrl)
+  const headers: Record<string, string> = {}
+  if (signed?.getFiles) headers['x-signed-url'] = signed.getFiles
 
-  const res = await fetch(`/api/files?${params}`)
+  const res = await fetch(`/api/files?${params}`, { headers })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
     throw new Error((err as { message?: string }).message || `HTTP ${res.status}`)
@@ -124,9 +126,9 @@ export async function resolveCallback(callbackParam: string): Promise<CallbackRe
   if (!res.ok) throw new Error(`Callback fetch failed: HTTP ${res.status}`)
 
   const json = await res.json()
-  const pid: string = json.datasetPid || json.pid || ''
+  const pid: string = json?.data?.queryParameters?.datasetPid || json.datasetPid || json.pid || ''
 
-  const arr: { name: string; signedUrl: string }[] = json.signedUrls || []
+  const arr: { name: string; signedUrl: string }[] = json?.data?.signedUrls || json.signedUrls || []
   const signedUrls: SignedUrls = {}
   for (const entry of arr) {
     if (entry.name === 'getDatasetMetadata') signedUrls.getDatasetMetadata = entry.signedUrl

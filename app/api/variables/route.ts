@@ -9,6 +9,7 @@ const MOCK_FILE_IDS = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
 export async function GET(req: NextRequest) {
   const fileId        = req.nextUrl.searchParams.get('fileId')
   const signedUrlBase = req.nextUrl.searchParams.get('signedUrlBase')
+  const siteUrl = req.nextUrl.searchParams.get('siteUrl') || undefined
   const token         = req.nextUrl.searchParams.get('token') || undefined
 
   if (!fileId) return NextResponse.json({ message: 'Missing fileId' }, { status: 400 })
@@ -22,7 +23,7 @@ export async function GET(req: NextRequest) {
   try {
     const res = signedUrlBase
       ? await fetch(`${signedUrlBase}/${fileId}/dataTables`)
-      : await dataverseFetch(`/api/v1/datafiles/${fileId}/dataTables`, token)
+      : await dataverseFetch(`/api/v1/files/${fileId}/dataTables`, token, siteUrl)
 
     if (!res.ok) return NextResponse.json(null)
 
@@ -37,7 +38,8 @@ export async function GET(req: NextRequest) {
     )
 
     return NextResponse.json(variables.length ? variables : null)
-  } catch {
+  } catch (e) {
+    console.log('[variables] error:', e)
     return NextResponse.json(null)
   }
 }

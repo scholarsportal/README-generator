@@ -8,7 +8,8 @@ const DEFAULT_PID = 'doi:10.5683/SP3/7HWSTS'
 
 export async function GET(req: NextRequest) {
   const pid       = req.nextUrl.searchParams.get('pid')
-  const signedUrl = req.nextUrl.searchParams.get('signedUrl')
+  const signedUrlRaw = req.headers.get('x-signed-url') || req.nextUrl.searchParams.get('signedUrl')
+  const signedUrl = signedUrlRaw ? decodeURIComponent(signedUrlRaw) : null
   const token     = req.nextUrl.searchParams.get('token') || undefined
   const siteUrl   = req.nextUrl.searchParams.get('siteUrl') || undefined
 
