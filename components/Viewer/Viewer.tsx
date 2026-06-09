@@ -35,7 +35,7 @@ export default function Viewer({ markdown, onChange, tab, onTabChange, status }:
             className={`${styles.tab} ${tab === 'raw' ? styles.active : ''}`}
             onClick={() => onTabChange('raw')}
           >
-            markdown
+            markdown <PencilIcon />
           </button>
           <button
             className={`${styles.tab} ${tab === 'dual' ? styles.active : ''}`}
@@ -141,6 +141,16 @@ function SplitIcon() {
       <rect x="9" y="4.5" width="4" height="1.2" rx="0.6" fill="currentColor" opacity="0.8" />
       <rect x="9" y="7" width="5" height="1.2" rx="0.6" fill="currentColor" opacity="0.8" />
       <rect x="9" y="9.5" width="3" height="1.2" rx="0.6" fill="currentColor" opacity="0.8" />
+    </svg>
+  )
+}
+
+// ── Pencil icon ───────────────────────────────────────────────────────────────
+
+function PencilIcon() {
+  return (
+    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ display: 'block', marginLeft: 4 }}>
+      <path d="M7 1L9 3L3.5 8.5L1 9L1.5 6.5L7 1Z" stroke="currentColor" strokeWidth="1" strokeLinejoin="round" fill="none"/>
     </svg>
   )
 }
