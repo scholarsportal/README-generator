@@ -69,3 +69,39 @@
   background: var(--accent-mid);
   border-color: var(--accent-mid);
 }
+
+/* ── info tooltip ── */
+.infoWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.infoBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--hint);
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  border-radius: 50%;
+  transition: color 0.15s;
+}
+.infoBtn:hover { color: var(--muted); }
+
+.tooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 240px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+  z-index: 20;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
