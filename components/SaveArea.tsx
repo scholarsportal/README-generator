@@ -9,15 +9,18 @@ interface SaveAreaProps {
 }
 
 export default function SaveArea({ onSave, hasSignedUrl }: SaveAreaProps) {
-  const [token, setToken]     = useState('')
-  const [show, setShow]       = useState(false)
-  const [saving, setSaving]   = useState(false)
-  const [saved, setSaved]     = useState(false)
-  const [error, setError]     = useState('')
+  const [showModal, setShowModal] = useState(false)
+  const [confirmed, setConfirmed] = useState(false)
+  const [token, setToken]         = useState('')
+  const [show, setShow]           = useState(false)
+  const [saving, setSaving]       = useState(false)
+  const [saved, setSaved]         = useState(false)
+  const [error, setError]         = useState('')
 
   async function handleSave() {
+    if (!confirmed) return
     if (!hasSignedUrl && !token.trim()) {
-      setError('Enter your Borealis API token.')
+      setError('Enter your Borealis API token to save.')
       return
     }
     setError('')
@@ -25,6 +28,9 @@ export default function SaveArea({ onSave, hasSignedUrl }: SaveAreaProps) {
     try {
       await onSave(token)
       setSaved(true)
+      setShowModal(false)
+      setConfirmed(false)
+      setToken('')
       setTimeout(() => setSaved(false), 3000)
     } catch (e) {
       setError(String(e))
@@ -33,33 +39,78 @@ export default function SaveArea({ onSave, hasSignedUrl }: SaveAreaProps) {
     }
   }
 
+  function openModal() {
+    setConfirmed(false)
+    setError('')
+    setShowModal(true)
+  }
+
   return (
-    <div className={styles.wrap}>
-      {error && <span className={styles.error}>{error}</span>}
-      <div className={styles.row}>
-        {!hasSignedUrl && (
-          <>
-            <input
-              type={show ? 'text' : 'password'}
-              className={styles.input}
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              placeholder="Borealis API token"
-            />
-            <button className={styles.eyeBtn} onClick={() => setShow((s) => !s)} title="Show/hide token">
-              <EyeIcon crossed={show} />
-            </button>
-          </>
-        )}
-        <button
-          className={`${styles.btn} ${styles.btnAccent}`}
-          //onClick={handleSave}
-          disabled={saving}
-        >
-          {saving ? 'saving…' : saved ? 'saved!' : 'save to dataset'}
-        </button>
-      </div>
-    </div>
+    <>
+      <button
+        className={`${styles.btn} ${styles.btnAccent}`}
+        onClick={openModal}
+        disabled={saved}
+      >
+        {saved ? 'saved!' : 'add README'}
+      </button>
+
+      {showModal && (
+        <div className={styles.overlay} onClick={() => setShowModal(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalTitle}>Add README to dataset?</div>
+            <p className={styles.modalBody}>
+              This will upload <strong>README.md</strong> as a file to your dataset.
+              Note: this saves a file, not dataset metadata.
+              If a README.md already exists, it will be saved as README_2.md, README_3.md, etc.
+            </p>
+
+            {!hasSignedUrl && (
+              <div className={styles.tokenRow}>
+                <label className={styles.tokenLabel}>Borealis API token</label>
+                <div className={styles.tokenInputRow}>
+                  <input
+                    type={show ? 'text' : 'password'}
+                    className={styles.input}
+                    value={token}
+                    onChange={(e) => setToken(e.target.value)}
+                    placeholder="Required to save"
+                    autoComplete="off"
+                  />
+                  <button className={styles.eyeBtn} onClick={() => setShow((s) => !s)} title="Show/hide token">
+                    <EyeIcon crossed={show} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {error && <div className={styles.error}>{error}</div>}
+
+            <label className={styles.checkRow}>
+              <input
+                type="checkbox"
+                checked={confirmed}
+                onChange={(e) => setConfirmed(e.target.checked)}
+              />
+              I understand and want to save README.md to this dataset
+            </label>
+
+            <div className={styles.modalActions}>
+              <button className={styles.btn} onClick={() => setShowModal(false)}>
+                cancel
+              </button>
+              <button
+                className={`${styles.btn} ${styles.btnAccent}`}
+                onClick={handleSave}
+                disabled={!confirmed || saving || (!hasSignedUrl && !token.trim())}
+              >
+                {saving ? 'saving…' : 'yes, add README'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 

@@ -145,6 +145,29 @@
 .fileItem:hover { border-color: var(--border); }
 .fileItem input[type='checkbox'] { width: 13px; height: 13px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
 
+.fileItemRestricted {
+  cursor: default;
+  opacity: 0.55;
+  position: relative;
+}
+.fileItemRestricted:hover { border-color: var(--border); }
+
+.restrictedTip {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 3px 8px;
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
+}
+
 .extBadge {
   font-size: 10px;
   font-weight: 500;
@@ -219,6 +242,13 @@
 }
 
 /* ── generation mode toggle ── */
+.modeHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
 .modeToggle {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -259,6 +289,13 @@
 /* ── tier blocks ── */
 .tierBlock { margin-bottom: 0.75rem; }
 
+.tierLabelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
 .tierLabel {
   display: flex;
   align-items: center;
@@ -267,7 +304,6 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--hint);
-  margin-bottom: 5px;
 }
 
 .tierDot {
@@ -275,6 +311,24 @@
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+.selectAllCheck {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--hint);
+  cursor: pointer;
+  user-select: none;
+  text-transform: lowercase;
+  letter-spacing: 0.04em;
+}
+.selectAllCheck input[type='checkbox'] {
+  width: 12px;
+  height: 12px;
+  accent-color: var(--accent);
+  cursor: pointer;
 }
 
 /* ── basic summary ── */
@@ -373,3 +427,61 @@
   transition: color 0.15s;
 }
 .removeBtn:hover { color: var(--danger); }
+
+/* ── info tooltip ── */
+.infoWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.infoBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--hint);
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  border-radius: 50%;
+  transition: color 0.15s;
+}
+.infoBtn:hover { color: var(--muted); }
+
+.tooltip {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 220px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+  z-index: 20;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+/* ── fetching state ── */
+.fetchingState {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--muted);
+  padding: 8px 0;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }

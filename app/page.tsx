@@ -109,7 +109,7 @@ function App() {
       ])
       setMeta(metaData)
       setFiles(fileData)
-      setSelectedIds(new Set(fileData.map((f) => f.id)))
+      setSelectedIds(new Set(fileData.filter((f) => !(f as DataFile & { restricted?: boolean }).restricted).map((f) => f.id)))
       setStatus({ message: `loaded — ${fileData.length} files found`, state: 'done' })
     } catch (e) {
       setFetchError(String(e))
@@ -130,7 +130,7 @@ function App() {
   }, [])
 
   const handleToggleAll = useCallback((checked: boolean) => {
-    setSelectedIds(checked ? new Set(files.map((f) => f.id)) : new Set())
+    setSelectedIds(checked ? new Set(files.filter((f) => !(f as DataFile & { restricted?: boolean }).restricted).map((f) => f.id)) : new Set())
   }, [files])
 
   const handleModeChange = useCallback((m: GenerationMode) => {
@@ -195,7 +195,7 @@ function App() {
   async function handleSave(saveToken: string) {
     setStatus({ message: 'uploading README to Borealis…', state: 'active' })
     try {
-      await saveReadme(pid, saveToken, markdown, signedUrls?.addFile, siteUrl || undefined)
+      await saveReadme(pid, saveToken || token, markdown, signedUrls?.addFile, siteUrl || undefined)
       setStatus({ message: 'README saved to dataset ✓', state: 'done' })
     } catch (e) {
       setStatus({ message: String(e), state: 'error' })

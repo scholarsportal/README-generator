@@ -31,7 +31,6 @@ interface SidebarProps {
 }
 
 export default function Sidebar({
-  token, onTokenChange, hasSignedUrls,
   fetching,
   meta, files, selectedIds, onToggleFile, onToggleAll,
   sections, onToggleSection,
@@ -41,7 +40,27 @@ export default function Sidebar({
   error,
 }: SidebarProps) {
   const tree = files.length ? buildTree(files) : null
+  const unrestrictedFiles = files.filter((f) => !(f as DataFile & { restricted?: boolean }).restricted)
   const canGenerate = !!meta && selectedIds.size > 0 && !generating
+
+  const allMinChecked = PINK_SECTIONS.every((s) => sections.includes(s))
+  const allEnhChecked = GREEN_SECTIONS.every((s) => sections.includes(s))
+
+  function toggleAllMin(checked: boolean) {
+    PINK_SECTIONS.forEach((s) => {
+      const has = sections.includes(s)
+      if (checked && !has) onToggleSection(s)
+      if (!checked && has) onToggleSection(s)
+    })
+  }
+
+  function toggleAllEnh(checked: boolean) {
+    GREEN_SECTIONS.forEach((s) => {
+      const has = sections.includes(s)
+      if (checked && !has) onToggleSection(s)
+      if (!checked && has) onToggleSection(s)
+    })
+  }
 
   return (
     <aside className={styles.sidebar}>
@@ -57,21 +76,6 @@ export default function Sidebar({
 
         {/* Error */}
         {error && <div className={styles.error}>{error}</div>}
-
-        {/* Token field — only when no signed URLs */}
-        {!hasSignedUrls && !fetching && (
-          <div className={styles.field}>
-            <label className={styles.label}>Borealis API token</label>
-            <input
-              type="password"
-              className={styles.input}
-              value={token}
-              onChange={(e) => onTokenChange(e.target.value)}
-              placeholder="Required for draft datasets"
-            />
-            <span className={styles.hint}>Only needed for unpublished datasets</span>
-          </div>
-        )}
 
         {/* Dataset meta */}
         {meta && (
@@ -95,7 +99,7 @@ export default function Sidebar({
           <div>
             <div className={styles.fileHeader}>
               <label className={styles.label} style={{ margin: 0 }}>Files to include</label>
-              <span className={styles.pill}>{selectedIds.size} / {files.length}</span>
+              <span className={styles.pill}>{selectedIds.size} / {unrestrictedFiles.length}</span>
             </div>
             <div className={styles.selectAllRow}>
               <button className={`${styles.btn} ${styles.btnSm}`} onClick={() => onToggleAll(true)}>select all</button>
@@ -112,14 +116,17 @@ export default function Sidebar({
         {/* Generation mode */}
         {meta && (
           <div>
-            <label className={styles.label}>Generation mode</label>
+            <div className={styles.modeHeaderRow}>
+              <label className={styles.label} style={{ margin: 0 }}>Generation mode</label>
+              <InfoTooltip />
+            </div>
             <div className={styles.modeToggle}>
               <button
                 className={`${styles.modeBtn} ${mode === 'basic' ? styles.modeBtnActive : ''}`}
                 onClick={() => onModeChange('basic')}
               >
-                <span className={styles.modeBtnTitle}>Basic</span>
-                <span className={styles.modeBtnSub}>Minimum README fields</span>
+                <span className={styles.modeBtnTitle}>Minimum</span>
+                <span className={styles.modeBtnSub}>Core README fields</span>
               </button>
               <button
                 className={`${styles.modeBtn} ${mode === 'advanced' ? styles.modeBtnActive : ''}`}
@@ -136,9 +143,19 @@ export default function Sidebar({
         {mode === 'advanced' && (
           <div>
             <div className={styles.tierBlock}>
-              <div className={styles.tierLabel}>
-                <span className={styles.tierDot} style={{ background: '#ea9999' }} />
-                Minimum README
+              <div className={styles.tierLabelRow}>
+                <div className={styles.tierLabel}>
+                  <span className={styles.tierDot} style={{ background: '#ea9999' }} />
+                  Minimum README
+                </div>
+                <label className={styles.selectAllCheck}>
+                  <input
+                    type="checkbox"
+                    checked={allMinChecked}
+                    onChange={(e) => toggleAllMin(e.target.checked)}
+                  />
+                  all
+                </label>
               </div>
               {PINK_SECTIONS.map((s) => (
                 <label key={s} className={styles.toggleItem}>
@@ -148,9 +165,19 @@ export default function Sidebar({
               ))}
             </div>
             <div className={styles.tierBlock}>
-              <div className={styles.tierLabel}>
-                <span className={styles.tierDot} style={{ background: '#93c47d' }} />
-                Enhanced README
+              <div className={styles.tierLabelRow}>
+                <div className={styles.tierLabel}>
+                  <span className={styles.tierDot} style={{ background: '#93c47d' }} />
+                  Enhanced README
+                </div>
+                <label className={styles.selectAllCheck}>
+                  <input
+                    type="checkbox"
+                    checked={allEnhChecked}
+                    onChange={(e) => toggleAllEnh(e.target.checked)}
+                  />
+                  all
+                </label>
               </div>
               {GREEN_SECTIONS.map((s) => (
                 <label key={s} className={styles.toggleItem}>
@@ -203,7 +230,7 @@ export default function Sidebar({
           </div>
         )}
 
-        {/* Basic mode summary */}
+        {/* Minimum mode summary */}
         {mode === 'basic' && meta && (
           <div className={styles.basicSummary}>
             <div className={styles.basicSummaryTitle}>Will include:</div>
@@ -232,6 +259,36 @@ export default function Sidebar({
   )
 }
 
+// ── Info tooltip ──────────────────────────────────────────────────────────────
+
+function InfoTooltip() {
+  const [visible, setVisible] = useState(false)
+  return (
+    <div className={styles.infoWrap}>
+      <button
+        className={styles.infoBtn}
+        onMouseEnter={() => setVisible(true)}
+        onMouseLeave={() => setVisible(false)}
+        onFocus={() => setVisible(true)}
+        onBlur={() => setVisible(false)}
+        aria-label="About this tool"
+      >
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.2"/>
+          <path d="M7 6.5V10" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+          <circle cx="7" cy="4.5" r="0.7" fill="currentColor"/>
+        </svg>
+      </button>
+      {visible && (
+        <div className={styles.tooltip}>
+          Generate a README.md for your Borealis dataset. Choose Minimum for essential fields,
+          or Advanced to select exactly which sections to include.
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── File tree ─────────────────────────────────────────────────────────────────
 
 function TreeLevel({ node, files, selectedIds, onToggleFile, depth }: {
@@ -240,18 +297,53 @@ function TreeLevel({ node, files, selectedIds, onToggleFile, depth }: {
 }) {
   return (
     <>
-      {node.files.map((f) => (
-        <label key={f.id} className={styles.fileItem} style={{ paddingLeft: 8 + depth * 16 }}>
-          <input type="checkbox" checked={selectedIds.has(f.id)} onChange={(e) => onToggleFile(f.id, e.target.checked)} />
-          <span className={styles.extBadge}>{fileExt(f.name)}</span>
-          <span className={styles.fileName} title={f.name}>{f.name}</span>
-          <span className={styles.fileSize}>{formatBytes(f.size)}</span>
-        </label>
-      ))}
+      {node.files.map((f) => {
+        const restricted = (f as DataFile & { restricted?: boolean }).restricted
+        return restricted
+          ? <RestrictedFileItem key={f.id} file={f} depth={depth} />
+          : (
+            <label key={f.id} className={styles.fileItem} style={{ paddingLeft: 8 + depth * 16 }}>
+              <input type="checkbox" checked={selectedIds.has(f.id)} onChange={(e) => onToggleFile(f.id, e.target.checked)} />
+              <span className={styles.extBadge}>{fileExt(f.name)}</span>
+              <span className={styles.fileName} title={f.name}>{f.name}</span>
+              <span className={styles.fileSize}>{formatBytes(f.size)}</span>
+            </label>
+          )
+      })}
       {Object.entries(node.dirs).map(([dirName, child]) => (
         <FolderNode key={dirName} name={dirName} node={child} files={files} selectedIds={selectedIds} onToggleFile={onToggleFile} depth={depth} />
       ))}
     </>
+  )
+}
+
+function RestrictedFileItem({ file, depth }: { file: DataFile & { restricted?: boolean }; depth: number }) {
+  const [showTip, setShowTip] = useState(false)
+  return (
+    <div
+      className={`${styles.fileItem} ${styles.fileItemRestricted}`}
+      style={{ paddingLeft: 8 + depth * 16 }}
+      onMouseEnter={() => setShowTip(true)}
+      onMouseLeave={() => setShowTip(false)}
+      title="Restricted — not available for README generation"
+    >
+      <LockIcon />
+      <span className={styles.extBadge} style={{ opacity: 0.4 }}>{fileExt(file.name)}</span>
+      <span className={styles.fileName} style={{ opacity: 0.4 }} title={file.name}>{file.name}</span>
+      <span className={styles.fileSize} style={{ opacity: 0.4 }}>{formatBytes(file.size)}</span>
+      {showTip && (
+        <span className={styles.restrictedTip}>Restricted file</span>
+      )}
+    </div>
+  )
+}
+
+function LockIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0, opacity: 0.4 }}>
+      <rect x="2" y="5" width="8" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.2"/>
+      <path d="M4 5V3.5a2 2 0 0 1 4 0V5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+    </svg>
   )
 }
 
@@ -262,11 +354,11 @@ function FolderNode({ name, node, files, selectedIds, onToggleFile, depth }: {
   const [open, setOpen] = useState(true)
 
   function collectIds(n: TreeNode): number[] {
-    return [...n.files.map((f) => f.id), ...Object.values(n.dirs).flatMap(collectIds)]
+    return [...n.files.filter((f) => !(f as DataFile & { restricted?: boolean }).restricted).map((f) => f.id), ...Object.values(n.dirs).flatMap(collectIds)]
   }
 
   const allIds = collectIds(node)
-  const allChecked = allIds.every((id) => selectedIds.has(id))
+  const allChecked = allIds.length > 0 && allIds.every((id) => selectedIds.has(id))
 
   return (
     <>
