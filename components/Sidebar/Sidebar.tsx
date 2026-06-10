@@ -380,3 +380,4 @@ function FolderNode({ name, node, files, selectedIds, onToggleFile, depth }: {
     </>
   )
 }
+
