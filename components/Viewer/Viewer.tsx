@@ -35,7 +35,7 @@ export default function Viewer({ markdown, onChange, tab, onTabChange, status }:
             className={`${styles.tab} ${tab === 'raw' ? styles.active : ''}`}
             onClick={() => onTabChange('raw')}
           >
-            markdown <PencilIcon />
+            .md <PencilIcon />
           </button>
           <button
             className={`${styles.tab} ${tab === 'dual' ? styles.active : ''}`}

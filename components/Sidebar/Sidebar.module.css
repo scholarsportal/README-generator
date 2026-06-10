@@ -146,8 +146,8 @@
 .fileItem input[type='checkbox'] { width: 13px; height: 13px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
 
 .fileItemRestricted {
-  cursor: default;
-  opacity: 0.55;
+  cursor: not-allowed;
+  opacity: 0.5;
   position: relative;
 }
 .fileItemRestricted:hover { border-color: var(--border); }
@@ -202,21 +202,24 @@
   user-select: none;
 }
 
-.folderName { font-size: 12px; color: var(--text); font-weight: 500; }
+.folderName { font-size: 12px; color: #b57fc0; font-weight: 500; }
 
 .folderToggle {
   background: none;
   border: none;
   cursor: pointer;
   padding: 2px;
-  color: var(--hint);
+  color: #b57fc0;
   display: flex;
   align-items: center;
   flex-shrink: 0;
 }
-.folderToggle:hover { color: var(--text); }
+.folderToggle:hover { color: #9a5fad; }
 
 .folderCb { width: 13px; height: 13px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
+
+/* folder icon color */
+.folderIcon { color: #b57fc0; }
 
 /* ── section toggles ── */
 .toggleGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
@@ -242,13 +245,6 @@
 }
 
 /* ── generation mode toggle ── */
-.modeHeaderRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-
 .modeToggle {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -427,42 +423,6 @@
   transition: color 0.15s;
 }
 .removeBtn:hover { color: var(--danger); }
-
-/* ── info tooltip ── */
-.infoWrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.infoBtn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--hint);
-  padding: 2px;
-  display: flex;
-  align-items: center;
-  border-radius: 50%;
-  transition: color 0.15s;
-}
-.infoBtn:hover { color: var(--muted); }
-
-.tooltip {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  width: 220px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 8px 10px;
-  font-size: 11px;
-  color: var(--muted);
-  line-height: 1.5;
-  z-index: 20;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-}
 
 /* ── fetching state ── */
 .fetchingState {
