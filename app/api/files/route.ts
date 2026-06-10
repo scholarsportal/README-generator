@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
     const json = await res.json()
     const files: DataFile[] = (json.data || []).map(
       (f: {
-        dataFile?: { id: number; filename: string; filesize: number; contentType: string }
+        dataFile?: { id: number; filename: string; filesize: number; contentType: string; restricted?: boolean }
         label?: string
         restricted?: boolean
         directoryLabel?: string
@@ -50,8 +50,6 @@ export async function GET(req: NextRequest) {
         directoryLabel: f.directoryLabel || '',
         description:    f.description || '',
         tags:           (f.categories || []).join(', '),
-        restricted:     f.restricted ?? f.dataFile?.restricted ?? false,
-        restricted:     f.restricted ?? f.dataFile?.restricted ?? false,
       })
     )
 

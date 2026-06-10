@@ -44,7 +44,6 @@ export interface DataFile {
   description: string
   tags: string
   restricted: boolean
-  restricted: boolean
 }
 
 // ── File tree (built client-side from directoryLabel paths) ───────────────────
