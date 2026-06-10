@@ -38,6 +38,7 @@ export async function GET(req: NextRequest) {
       (f: {
         dataFile?: { id: number; filename: string; filesize: number; contentType: string }
         label?: string
+        restricted?: boolean
         directoryLabel?: string
         description?: string
         categories?: string[]
@@ -49,6 +50,8 @@ export async function GET(req: NextRequest) {
         directoryLabel: f.directoryLabel || '',
         description:    f.description || '',
         tags:           (f.categories || []).join(', '),
+        restricted:     f.restricted ?? f.dataFile?.restricted ?? false,
+        restricted:     f.restricted ?? f.dataFile?.restricted ?? false,
       })
     )
 
