@@ -51,7 +51,7 @@
 }
 .btn:hover { border-color: var(--border-mid); }
 .btn:active { transform: scale(0.98); }
-.btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+.btn:disabled { opacity: 0.35; cursor: default; transform: none; }
 
 .btnSm { padding: 4px 10px; font-size: 11px; }
 .btnFull { width: 100%; text-align: center; }
@@ -146,7 +146,7 @@
 .fileItem input[type='checkbox'] { width: 13px; height: 13px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
 
 .fileItemRestricted {
-  cursor: not-allowed;
+  cursor: default;
   opacity: 0.5;
   position: relative;
 }
@@ -202,24 +202,24 @@
   user-select: none;
 }
 
-.folderName { font-size: 12px; color: #b57fc0; font-weight: 500; }
+.folderName { font-size: 12px; color: #ea9999; font-weight: 500; }
 
 .folderToggle {
   background: none;
   border: none;
   cursor: pointer;
   padding: 2px;
-  color: #b57fc0;
+  color: #ea9999;
   display: flex;
   align-items: center;
   flex-shrink: 0;
 }
-.folderToggle:hover { color: #9a5fad; }
+.folderToggle:hover { color: #d08080; }
 
 .folderCb { width: 13px; height: 13px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
 
 /* folder icon color */
-.folderIcon { color: #b57fc0; }
+.folderIcon { color: #ea9999; }
 
 /* ── section toggles ── */
 .toggleGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }

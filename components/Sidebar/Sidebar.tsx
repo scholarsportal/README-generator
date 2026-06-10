@@ -336,7 +336,7 @@ function FolderNode({ name, node, files, selectedIds, onToggleFile, depth }: {
           </svg>
         </button>
         <input type="checkbox" className={styles.folderCb} checked={allChecked} onChange={(e) => allIds.forEach((id) => onToggleFile(id, e.target.checked))} />
-        <svg width="16" height="16" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0, color: "#b57fc0" }}>
+        <svg width="16" height="16" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0, color: "#ea9999" }}>
           <path d="M1 3.5C1 2.67 1.67 2 2.5 2H4.5L5.5 3H9.5C10.33 3 11 3.67 11 4.5V8.5C11 9.33 10.33 10 9.5 10H2.5C1.67 10 1 9.33 1 8.5V3.5Z" fill="currentColor" opacity="0.2" stroke="currentColor" strokeWidth="1" />
         </svg>
         <span className={styles.folderName}>{name}</span>
