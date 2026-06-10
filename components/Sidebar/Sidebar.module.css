@@ -143,7 +143,7 @@
   user-select: none;
 }
 .fileItem:hover { border-color: var(--border); }
-.fileItem input[type='checkbox'] { width: 13px; height: 13px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
+.fileItem input[type='checkbox'] { width: 13px; height: 13px; .folderCb { width: 13px; height: 13px; accent-color: #ea9999; cursor: pointer; flex-shrink: 0; }
 
 .fileItemRestricted {
   cursor: default;
@@ -209,14 +209,14 @@
   border: none;
   cursor: pointer;
   padding: 2px;
-  color: #ea9999;
+  color: var(--hint);
   display: flex;
   align-items: center;
   flex-shrink: 0;
 }
-.folderToggle:hover { color: #d08080; }
+.folderToggle:hover { color: var(--hint); }
 
-.folderCb { width: 13px; height: 13px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
+.folderCb { width: 13px; height: 13px; .folderCb { width: 13px; height: 13px; accent-color: #ea9999; cursor: pointer; flex-shrink: 0; }
 
 /* folder icon color */
 .folderIcon { color: #ea9999; }
