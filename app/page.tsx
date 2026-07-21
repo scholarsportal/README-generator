@@ -31,7 +31,8 @@ function App() {
   const [signedUrls, setSignedUrls] = useState<SignedUrls | undefined>(undefined)
   const [meta, setMeta]             = useState<DatasetMeta | null>(null)
   const [files, setFiles]           = useState<DataFile[]>([])
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+  const [selectedIds, setSelectedIds]   = useState<Set<number>>(new Set())
+  const [variableIds, setVariableIds]   = useState<Set<number>>(new Set())
   const [fetching, setFetching]     = useState(false)
   const [fetchError, setFetchError] = useState('')
 
@@ -97,6 +98,7 @@ function App() {
     setMeta(null)
     setFiles([])
     setSelectedIds(new Set())
+    setVariableIds(new Set())
     setMarkdown('')
 
     const resolvedToken = token || undefined
@@ -109,7 +111,10 @@ function App() {
       ])
       setMeta(metaData)
       setFiles(fileData)
-      setSelectedIds(new Set(fileData.filter((f) => !(f as DataFile & { restricted?: boolean }).restricted).map((f) => f.id)))
+      const unrestricted = fileData.filter((f) => !f.restricted)
+      setSelectedIds(new Set(unrestricted.map((f) => f.id)))
+      // default variable checkboxes unchecked
+      setVariableIds(new Set())
       setStatus({ message: `loaded — ${fileData.length} files found`, state: 'done' })
     } catch (e) {
       setFetchError(String(e))
@@ -129,8 +134,16 @@ function App() {
     })
   }, [])
 
+  const handleToggleVariable = useCallback((id: number, checked: boolean) => {
+    setVariableIds((prev) => {
+      const next = new Set(prev)
+      checked ? next.add(id) : next.delete(id)
+      return next
+    })
+  }, [])
+
   const handleToggleAll = useCallback((checked: boolean) => {
-    setSelectedIds(checked ? new Set(files.filter((f) => !(f as DataFile & { restricted?: boolean }).restricted).map((f) => f.id)) : new Set())
+    setSelectedIds(checked ? new Set(files.filter((f) => !f.restricted).map((f) => f.id)) : new Set())
   }, [files])
 
   const handleModeChange = useCallback((m: GenerationMode) => {
@@ -164,7 +177,7 @@ function App() {
 
     const activeSections: Section[] = mode === 'basic' ? PINK_SECTIONS : sections
     const selectedFiles = files.filter((f) => selectedIds.has(f.id))
-    const tabularFiles  = activeSections.includes('variables') ? selectedFiles.filter(isTabular) : []
+    const tabularFiles  = selectedFiles.filter(isTabular).filter((f) => variableIds.has(f.id))
     const resolvedToken = token || undefined
     const site = siteUrl || undefined
 
@@ -236,7 +249,9 @@ function App() {
           meta={meta}
           files={files}
           selectedIds={selectedIds}
+          variableIds={variableIds}
           onToggleFile={handleToggleFile}
+          onToggleVariable={handleToggleVariable}
           onToggleAll={handleToggleAll}
           sections={sections}
           onToggleSection={handleToggleSection}

@@ -22,8 +22,26 @@
   --radius-lg: 10px;
 }
 
+/* Dark mode via class (manual toggle) */
+html.dark {
+  --bg: #0f0e0b;
+  --surface: #191710;
+  --surface2: #1e1c15;
+  --border: #2a2820;
+  --border-mid: #3a3830;
+  --text: #f0ece2;
+  --muted: #9e9888;
+  --hint: #5e5c54;
+  --accent: #4db876;
+  --accent-bg: #0c2018;
+  --accent-mid: #3a9a60;
+  --danger: #e05050;
+  --danger-bg: #1e0e0e;
+}
+
+/* Dark mode via system preference (when no manual override) */
 @media (prefers-color-scheme: dark) {
-  :root {
+  html:not(.light):not(.dark) {
     --bg: #0f0e0b;
     --surface: #191710;
     --surface2: #1e1c15;

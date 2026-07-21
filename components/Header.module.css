@@ -1,7 +1,7 @@
 .header {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1rem;
   padding: 1.25rem 2rem;
   border-bottom: 1px solid var(--border);
   background: var(--surface);
@@ -33,6 +33,20 @@
   border-radius: 3px;
   white-space: nowrap;
 }
+
+.themeToggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--hint);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius);
+  transition: color 0.15s;
+  flex-shrink: 0;
+}
+.themeToggle:hover { color: var(--text); }
 
 .actions {
   margin-left: auto;
