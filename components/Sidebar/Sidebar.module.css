@@ -103,17 +103,17 @@
   border-radius: 3px;
 }
 
-.selectAllRow {
+/* Header row: col labels on left, select all buttons on right */
+.fileColHeaderRow {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
   margin-bottom: 6px;
 }
 
-.colLabels {
-  margin-left: auto;
+.fileColHeaderLeft {
   display: flex;
-  gap: 0;
+  gap: 4px;
 }
 
 .colLabel {
@@ -121,12 +121,15 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--hint);
-  width: 38px;
-  text-align: center;
-  flex-shrink: 0;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
 }
 
-/* Fixed height scrollable file tree — 50% bigger than original 220px */
+.selectAllBtns { display: flex; gap: 6px; }
+
+/* Fixed height scrollable file tree */
 .fileTreeWrap {
   height: 330px;
   overflow-y: auto;
@@ -154,7 +157,15 @@
   position: relative;
 }
 .fileItem:hover { border-color: var(--border); }
-.fileItem input[type='checkbox'] {
+
+/* Two checkboxes side by side on the left */
+.checkboxGroup {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.checkboxGroup input[type='checkbox'] {
   width: 13px;
   height: 13px;
   accent-color: var(--accent);
@@ -162,11 +173,20 @@
   flex-shrink: 0;
 }
 
+.cbPlaceholder {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+/* Lock icon on the right */
 .unlockIcon {
   display: flex;
   align-items: center;
   color: var(--hint);
   flex-shrink: 0;
+  margin-left: auto;
   position: relative;
   cursor: default;
 }
@@ -174,7 +194,7 @@
 .restrictedTip {
   position: absolute;
   bottom: calc(100% + 4px);
-  left: 0;
+  right: 0;
   background: var(--surface2);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -185,23 +205,6 @@
   pointer-events: none;
   z-index: 10;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.varCb {
-  width: 13px;
-  height: 13px;
-  accent-color: var(--accent);
-  cursor: pointer;
-  flex-shrink: 0;
-  margin-left: auto;
-}
-
-.varCbPlaceholder {
-  width: 13px;
-  height: 13px;
-  flex-shrink: 0;
-  display: inline-block;
-  margin-left: auto;
 }
 
 .extBadge {

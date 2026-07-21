@@ -98,12 +98,14 @@ export default function Sidebar({
               <label className={styles.label} style={{ margin: 0 }}>Files to include</label>
               <span className={styles.pill}>{selectedIds.size} / {files.length}</span>
             </div>
-            <div className={styles.selectAllRow}>
-              <button className={`${styles.btn} ${styles.btnSm}`} onClick={() => onToggleAll(true)}>select all</button>
-              <button className={`${styles.btn} ${styles.btnSm}`} onClick={() => onToggleAll(false)}>none</button>
-              <div className={styles.colLabels}>
+            <div className={styles.fileColHeaderRow}>
+              <div className={styles.fileColHeaderLeft}>
                 <span className={styles.colLabel}>file list</span>
                 <span className={styles.colLabel}>var list</span>
+              </div>
+              <div className={styles.selectAllBtns}>
+                <button className={`${styles.btn} ${styles.btnSm}`} onClick={() => onToggleAll(true)}>all</button>
+                <button className={`${styles.btn} ${styles.btnSm}`} onClick={() => onToggleAll(false)}>none</button>
               </div>
             </div>
             <div className={styles.fileTreeWrap}>
@@ -302,6 +304,28 @@ function FileItem({ file, depth, checked, varChecked, onToggleFile, onToggleVari
 
   return (
     <div className={styles.fileItem} style={{ paddingLeft: 8 + depth * 16 }}>
+      {/* Left: both checkboxes side by side */}
+      <div className={styles.checkboxGroup}>
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(e) => onToggleFile(file.id, e.target.checked)}
+          title="Include in file list"
+        />
+        {tabular
+          ? <input
+              type="checkbox"
+              checked={varChecked}
+              onChange={(e) => onToggleVariable(file.id, e.target.checked)}
+              title="Include variables"
+            />
+          : <span className={styles.cbPlaceholder} />
+        }
+      </div>
+      <span className={styles.extBadge}>{fileExt(file.name)}</span>
+      <span className={styles.fileName} title={file.name}>{file.name}</span>
+      <span className={styles.fileSize}>{formatBytes(file.size)}</span>
+      {/* Right: lock icon for restricted */}
       {file.restricted && (
         <span
           className={styles.unlockIcon}
@@ -312,24 +336,6 @@ function FileItem({ file, depth, checked, varChecked, onToggleFile, onToggleVari
           {showTip && <span className={styles.restrictedTip}>Restricted file</span>}
         </span>
       )}
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onToggleFile(file.id, e.target.checked)}
-      />
-      <span className={styles.extBadge}>{fileExt(file.name)}</span>
-      <span className={styles.fileName} title={file.name}>{file.name}</span>
-      <span className={styles.fileSize}>{formatBytes(file.size)}</span>
-      {tabular
-        ? <input
-            type="checkbox"
-            className={styles.varCb}
-            checked={varChecked}
-            onChange={(e) => onToggleVariable(file.id, e.target.checked)}
-            title="Include variables in README"
-          />
-        : <span className={styles.varCbPlaceholder} />
-      }
     </div>
   )
 }

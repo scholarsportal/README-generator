@@ -63,41 +63,32 @@
 }
 .btnAccent:hover { background: var(--accent-mid); border-color: var(--accent-mid); }
 
-/* ── theme toggle switch ── */
-.themeSwitch {
+/* ── theme segmented button ── */
+.themeSegment {
   display: flex;
-  align-items: center;
-  gap: 5px;
-  cursor: pointer;
-  color: var(--hint);
-  margin-left: 4px;
-  user-select: none;
-}
-.themeSwitch:hover { color: var(--muted); }
-
-.switchTrack {
-  width: 28px;
-  height: 16px;
-  border-radius: 8px;
-  background: var(--border-mid);
-  position: relative;
-  transition: background 0.2s;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
   flex-shrink: 0;
 }
-.switchOn { background: var(--accent); }
 
-.switchThumb {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #fff;
-  transition: transform 0.2s;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+.themeBtn {
+  background: var(--surface2);
+  border: none;
+  cursor: pointer;
+  color: var(--hint);
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
 }
-.switchOn .switchThumb { transform: translateX(12px); }
+.themeBtn + .themeBtn { border-left: 1px solid var(--border); }
+.themeBtn:hover { color: var(--text); background: var(--surface); }
+.themeBtnActive {
+  background: var(--bg);
+  color: var(--text);
+}
 
 /* ── info tooltip ── */
 .infoWrap {
