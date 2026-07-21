@@ -14,18 +14,18 @@ export default function Header({ hasReadme, onCopy, onDownload, saveArea }: Head
   const [dark, setDark] = useState<boolean | null>(null)
 
   useEffect(() => {
-    // On mount, check if a manual preference is set
     const stored = localStorage.getItem('theme')
     if (stored === 'dark') setDark(true)
     else if (stored === 'light') setDark(false)
-    else setDark(null) // follow system
+    else {
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      setDark(systemDark)
+    }
   }, [])
 
   useEffect(() => {
-    if (dark === null) {
-      document.documentElement.classList.remove('dark', 'light')
-      localStorage.removeItem('theme')
-    } else if (dark) {
+    if (dark === null) return
+    if (dark) {
       document.documentElement.classList.add('dark')
       document.documentElement.classList.remove('light')
       localStorage.setItem('theme', 'dark')
@@ -36,21 +36,6 @@ export default function Header({ hasReadme, onCopy, onDownload, saveArea }: Head
     }
   }, [dark])
 
-  function toggleTheme() {
-    setDark((prev) => {
-      if (prev === null) {
-        // check current system preference
-        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-        return !systemDark
-      }
-      return !prev
-    })
-  }
-
-  const isDarkMode = dark !== null
-    ? dark
-    : (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches)
-
   return (
     <header className={styles.header}>
       <div className={styles.wordmark}>
@@ -58,9 +43,6 @@ export default function Header({ hasReadme, onCopy, onDownload, saveArea }: Head
       </div>
       <div className={styles.badge}>external tool</div>
       <InfoTooltip />
-      <button className={styles.themeToggle} onClick={toggleTheme} title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}>
-        {isDarkMode ? <SunIcon /> : <MoonIcon />}
-      </button>
       <div className={styles.actions}>
         {hasReadme && (
           <>
@@ -76,6 +58,14 @@ export default function Header({ hasReadme, onCopy, onDownload, saveArea }: Head
             </button>
           </>
         )}
+        {/* Theme toggle — always visible, pushed to far right */}
+        <div className={styles.themeSwitch} onClick={() => setDark((d) => !d)} title={dark ? 'Switch to light mode' : 'Switch to dark mode'}>
+          <MoonIcon />
+          <div className={`${styles.switchTrack} ${dark ? styles.switchOn : ''}`}>
+            <div className={styles.switchThumb} />
+          </div>
+          <SunIcon />
+        </div>
       </div>
     </header>
   )
@@ -109,9 +99,17 @@ function InfoTooltip() {
   )
 }
 
+function MoonIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+      <path d="M11.5 8.5A5 5 0 0 1 5.5 2.5a5 5 0 1 0 6 6z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
 function SunIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+    <svg width="12" height="12" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
       <circle cx="7" cy="7" r="3" stroke="currentColor" strokeWidth="1.2"/>
       <line x1="7" y1="1" x2="7" y2="2.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
       <line x1="7" y1="11.5" x2="7" y2="13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
@@ -121,14 +119,6 @@ function SunIcon() {
       <line x1="10.01" y1="10.01" x2="11.07" y2="11.07" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
       <line x1="11.07" y1="2.93" x2="10.01" y2="3.99" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
       <line x1="3.99" y1="10.01" x2="2.93" y2="11.07" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-    </svg>
-  )
-}
-
-function MoonIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-      <path d="M11.5 8.5A5 5 0 0 1 5.5 2.5a5 5 0 1 0 6 6z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   )
 }

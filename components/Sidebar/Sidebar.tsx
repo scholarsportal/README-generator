@@ -42,7 +42,6 @@ export default function Sidebar({
   error,
 }: SidebarProps) {
   const tree = files.length ? buildTree(files) : null
-  const unrestrictedFiles = files.filter((f) => !f.restricted)
   const canGenerate = !!meta && selectedIds.size > 0 && !generating
 
   const allMinChecked = PINK_SECTIONS.every((s) => sections.includes(s))
@@ -68,7 +67,6 @@ export default function Sidebar({
     <aside className={styles.sidebar}>
       <div className={styles.scroll}>
 
-        {/* Loading state */}
         {fetching && (
           <div className={styles.fetchingState}>
             <div className={styles.spinner} />
@@ -76,10 +74,8 @@ export default function Sidebar({
           </div>
         )}
 
-        {/* Error */}
         {error && <div className={styles.error}>{error}</div>}
 
-        {/* Dataset meta */}
         {meta && (
           <div>
             <label className={styles.label}>Dataset</label>
@@ -96,21 +92,19 @@ export default function Sidebar({
           </div>
         )}
 
-        {/* File tree */}
         {tree && (
           <div>
             <div className={styles.fileHeader}>
               <label className={styles.label} style={{ margin: 0 }}>Files to include</label>
-              <span className={styles.pill}>{selectedIds.size} / {unrestrictedFiles.length}</span>
-            </div>
-            <div className={styles.fileColHeaders}>
-              <span className={styles.fileColSpacer} />
-              <span className={styles.fileColLabel}>file</span>
-              <span className={styles.fileColLabel}>vars</span>
+              <span className={styles.pill}>{selectedIds.size} / {files.length}</span>
             </div>
             <div className={styles.selectAllRow}>
               <button className={`${styles.btn} ${styles.btnSm}`} onClick={() => onToggleAll(true)}>select all</button>
               <button className={`${styles.btn} ${styles.btnSm}`} onClick={() => onToggleAll(false)}>none</button>
+              <div className={styles.colLabels}>
+                <span className={styles.colLabel}>file list</span>
+                <span className={styles.colLabel}>var list</span>
+              </div>
             </div>
             <div className={styles.fileTreeWrap}>
               <div className={styles.fileTree}>
@@ -130,7 +124,6 @@ export default function Sidebar({
 
         {meta && <hr className={styles.divider} />}
 
-        {/* Generation mode */}
         {meta && (
           <div>
             <label className={styles.label}>Generation mode</label>
@@ -153,7 +146,6 @@ export default function Sidebar({
           </div>
         )}
 
-        {/* Section toggles — advanced only */}
         {mode === 'advanced' && (
           <div>
             <div className={styles.tierBlock}>
@@ -195,7 +187,6 @@ export default function Sidebar({
           </div>
         )}
 
-        {/* Custom sections — advanced only */}
         {mode === 'advanced' && (
           <div>
             <div className={styles.tierLabel} style={{ marginBottom: 8 }}>
@@ -236,7 +227,6 @@ export default function Sidebar({
           </div>
         )}
 
-        {/* Minimum mode summary */}
         {mode === 'basic' && meta && (
           <div className={styles.basicSummary}>
             <div className={styles.basicSummaryTitle}>Will include:</div>
@@ -249,7 +239,6 @@ export default function Sidebar({
           </div>
         )}
 
-        {/* Generate button */}
         {meta && (
           <button
             className={`${styles.btn} ${styles.btnAccent} ${styles.btnFull}`}
@@ -275,21 +264,17 @@ function TreeLevel({ node, files, selectedIds, variableIds, onToggleFile, onTogg
 }) {
   return (
     <>
-      {node.files.map((f) =>
-        f.restricted
-          ? <RestrictedFileItem key={f.id} file={f} depth={depth} />
-          : (
-            <FileItem
-              key={f.id}
-              file={f}
-              depth={depth}
-              checked={selectedIds.has(f.id)}
-              varChecked={variableIds.has(f.id)}
-              onToggleFile={onToggleFile}
-              onToggleVariable={onToggleVariable}
-            />
-          )
-      )}
+      {node.files.map((f) => (
+        <FileItem
+          key={f.id}
+          file={f}
+          depth={depth}
+          checked={selectedIds.has(f.id)}
+          varChecked={variableIds.has(f.id)}
+          onToggleFile={onToggleFile}
+          onToggleVariable={onToggleVariable}
+        />
+      ))}
       {Object.entries(node.dirs).map(([dirName, child]) => (
         <FolderNode
           key={dirName}
@@ -313,8 +298,20 @@ function FileItem({ file, depth, checked, varChecked, onToggleFile, onToggleVari
   onToggleVariable: (id: number, checked: boolean) => void
 }) {
   const tabular = isTabular(file)
+  const [showTip, setShowTip] = useState(false)
+
   return (
     <div className={styles.fileItem} style={{ paddingLeft: 8 + depth * 16 }}>
+      {file.restricted && (
+        <span
+          className={styles.unlockIcon}
+          onMouseEnter={() => setShowTip(true)}
+          onMouseLeave={() => setShowTip(false)}
+        >
+          <UnlockIcon />
+          {showTip && <span className={styles.restrictedTip}>Restricted file</span>}
+        </span>
+      )}
       <input
         type="checkbox"
         checked={checked}
@@ -337,31 +334,9 @@ function FileItem({ file, depth, checked, varChecked, onToggleFile, onToggleVari
   )
 }
 
-function RestrictedFileItem({ file, depth }: { file: DataFile; depth: number }) {
-  const [showTip, setShowTip] = useState(false)
-  const tabular = isTabular(file)
-  return (
-    <div
-      className={`${styles.fileItem} ${styles.fileItemRestricted}`}
-      style={{ paddingLeft: 8 + depth * 16 }}
-      onMouseEnter={() => setShowTip(true)}
-      onMouseLeave={() => setShowTip(false)}
-    >
-      <UnlockIcon />
-      <span className={styles.extBadge} style={{ opacity: 0.4 }}>{fileExt(file.name)}</span>
-      <span className={styles.fileName} style={{ opacity: 0.4 }} title={file.name}>{file.name}</span>
-      <span className={styles.fileSize} style={{ opacity: 0.4 }}>{formatBytes(file.size)}</span>
-      {tabular ? <span className={styles.varCbPlaceholder} /> : <span className={styles.varCbPlaceholder} />}
-      {showTip && (
-        <span className={styles.restrictedTip}>Restricted — contact dataset owner for access</span>
-      )}
-    </div>
-  )
-}
-
 function UnlockIcon() {
   return (
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0, opacity: 0.45 }}>
+    <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
       <rect x="2" y="5" width="8" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.2"/>
       <path d="M4 5V3.5a2 2 0 0 1 4 0" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
     </svg>
@@ -377,7 +352,7 @@ function FolderNode({ name, node, files, selectedIds, variableIds, onToggleFile,
   const [open, setOpen] = useState(true)
 
   function collectIds(n: TreeNode): number[] {
-    return [...n.files.filter((f) => !f.restricted).map((f) => f.id), ...Object.values(n.dirs).flatMap(collectIds)]
+    return [...n.files.map((f) => f.id), ...Object.values(n.dirs).flatMap(collectIds)]
   }
 
   const allIds = collectIds(node)

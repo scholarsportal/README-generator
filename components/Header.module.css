@@ -34,20 +34,6 @@
   white-space: nowrap;
 }
 
-.themeToggle {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--hint);
-  padding: 4px;
-  display: flex;
-  align-items: center;
-  border-radius: var(--radius);
-  transition: color 0.15s;
-  flex-shrink: 0;
-}
-.themeToggle:hover { color: var(--text); }
-
 .actions {
   margin-left: auto;
   display: flex;
@@ -66,23 +52,52 @@
   transition: all 0.15s;
   white-space: nowrap;
 }
-
 .btn:hover { border-color: var(--border-mid); }
 .btn:active { transform: scale(0.98); }
-
 .btnSm { padding: 4px 10px; font-size: 11px; }
-
 .btnAccent {
   background: var(--accent);
   border-color: var(--accent);
   color: #fff;
   font-weight: 500;
 }
+.btnAccent:hover { background: var(--accent-mid); border-color: var(--accent-mid); }
 
-.btnAccent:hover {
-  background: var(--accent-mid);
-  border-color: var(--accent-mid);
+/* ── theme toggle switch ── */
+.themeSwitch {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  color: var(--hint);
+  margin-left: 4px;
+  user-select: none;
 }
+.themeSwitch:hover { color: var(--muted); }
+
+.switchTrack {
+  width: 28px;
+  height: 16px;
+  border-radius: 8px;
+  background: var(--border-mid);
+  position: relative;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.switchOn { background: var(--accent); }
+
+.switchThumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.switchOn .switchThumb { transform: translateX(12px); }
 
 /* ── info tooltip ── */
 .infoWrap {
