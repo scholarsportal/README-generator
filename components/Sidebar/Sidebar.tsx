@@ -47,9 +47,9 @@ export default function Sidebar({
   const allMinChecked = PINK_SECTIONS.every((s) => sections.includes(s))
   const allEnhChecked = GREEN_SECTIONS.every((s) => sections.includes(s))
 
-  // Only count unrestricted files for select-all (matches handleToggleAll in page.tsx)
+  // Only count unrestricted files for select-all
   const unrestrictedFiles = files.filter((f) => !f.restricted)
-  const allFilesChecked = unrestrictedFiles.length > 0 && unrestrictedFiles.every((f) => selectedIds.has(f.id))
+  const allFilesChecked = unrestrictedFiles.length > 0 && unrestrictedFiles.every((f) => selectedIds.has(f.id)) && !files.some((f) => f.restricted && selectedIds.has(f.id))
   const tabularFiles = files.filter(isTabular)
   const allVarsChecked = tabularFiles.length > 0 && tabularFiles.every((f) => variableIds.has(f.id))
 
@@ -110,25 +110,29 @@ export default function Sidebar({
             </div>
             <div className={styles.fileTreeWrap}>
               <div className={styles.fileTree}>
-                {/* Select-all row */}
+                {/* Legend + select-all */}
+                <div className={styles.fileListLegend}>
+                  <span className={styles.legendLine}><span className={styles.legendNum}>①</span> file list — include file in README</span>
+                  <span className={styles.legendLine}><span className={styles.legendNum}>②</span> var list — include variable metadata</span>
+                </div>
                 <div className={`${styles.fileRow} ${styles.fileRowSelectAll}`}>
-                  <div className={styles.cbCol}>
+                  <div className={styles.cbColHeader}>
+                    <span className={styles.cbBadge}>①</span>
                     <input
                       type="checkbox"
                       checked={allFilesChecked}
                       onChange={(e) => onToggleAll(e.target.checked)}
                       title="Select all files"
                     />
-                    <span className={styles.cbBadge}>①</span>
                   </div>
-                  <div className={styles.cbCol}>
+                  <div className={styles.cbColHeader}>
+                    <span className={styles.cbBadge}>②</span>
                     <input
                       type="checkbox"
                       checked={allVarsChecked}
                       onChange={(e) => toggleAllVars(e.target.checked)}
                       title="Select all variables"
                     />
-                    <span className={styles.cbBadge}>②</span>
                   </div>
                   <span className={styles.selectAllLabel}>select all</span>
                   <span className={styles.fileNameCol} />
@@ -329,7 +333,7 @@ function FileItem({ file, depth, checked, varChecked, onToggleFile, onToggleVari
   const [showTip, setShowTip] = useState(false)
 
   return (
-    <div className={styles.fileRow} style={{ paddingLeft: 8 + depth * 20 }}>
+    <div className={styles.fileRow} style={{ paddingLeft: 8 + depth * 28 }}>
       <div className={styles.cbCol}>
         <input type="checkbox" checked={checked} onChange={(e) => onToggleFile(file.id, e.target.checked)} />
       </div>
@@ -391,7 +395,7 @@ function FolderNode({ name, node, files, selectedIds, variableIds, onToggleFile,
 
   return (
     <>
-      <div className={styles.fileRow} style={{ paddingLeft: 8 + depth * 20 }}>
+      <div className={styles.fileRow} style={{ paddingLeft: 8 + depth * 28 }}>
         <div className={styles.cbCol}>
           <input
             type="checkbox"

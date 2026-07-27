@@ -103,6 +103,34 @@
   border-radius: 3px;
 }
 
+/* Legend above file list */
+.fileListLegend {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 6px;
+  padding: 6px 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.legendLine {
+  font-size: 10px;
+  color: var(--hint);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  line-height: 1.4;
+}
+
+.legendNum {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
 .fileTreeWrap {
   height: 330px;
   overflow-y: auto;
@@ -176,6 +204,22 @@
   line-height: 1;
   flex-shrink: 0;
   user-select: none;
+}
+
+/* Checkbox column with badge stacked above — for select-all row */
+.cbColHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.cbColHeader input[type='checkbox'] {
+  width: 13px;
+  height: 13px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .cbPlaceholder {
