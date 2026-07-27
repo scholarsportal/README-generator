@@ -91,7 +91,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .pill {
@@ -101,27 +101,6 @@
   color: var(--accent);
   padding: 2px 7px;
   border-radius: 3px;
-}
-
-/* Legend above the file list */
-.fileLegend {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 6px;
-}
-
-.legendItem {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 10px;
-  color: var(--hint);
-}
-
-.legendBadge {
-  font-size: 10px;
-  color: var(--muted);
-  font-weight: 500;
 }
 
 .fileTreeWrap {
@@ -138,7 +117,7 @@
   gap: 1px;
 }
 
-/* Shared row — file rows, folder rows, select-all row */
+/* Shared row */
 .fileRow {
   display: flex;
   align-items: center;
@@ -153,7 +132,7 @@
 }
 .fileRow:hover { border-color: var(--border); }
 
-/* Select-all row styling */
+/* Select-all row */
 .fileRowSelectAll {
   background: transparent;
   border-color: transparent !important;
@@ -162,7 +141,10 @@
   border-radius: 0;
   margin-bottom: 2px;
 }
-.fileRowSelectAll:hover { border-color: transparent !important; border-bottom-color: var(--border) !important; }
+.fileRowSelectAll:hover {
+  border-color: transparent !important;
+  border-bottom-color: var(--border) !important;
+}
 
 .selectAllLabel {
   font-size: 10px;
@@ -172,13 +154,11 @@
   flex-shrink: 0;
 }
 
-/* Checkbox column — fixed 13px wide */
+/* Checkbox column with badge */
 .cbCol {
-  width: 13px;
-  height: 13px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 2px;
   flex-shrink: 0;
 }
 .cbCol input[type='checkbox'] {
@@ -189,6 +169,15 @@
   flex-shrink: 0;
 }
 
+/* ① ② badge next to checkbox */
+.cbBadge {
+  font-size: 9px;
+  color: var(--hint);
+  line-height: 1;
+  flex-shrink: 0;
+  user-select: none;
+}
+
 .cbPlaceholder {
   width: 13px;
   height: 13px;
@@ -196,7 +185,7 @@
   display: inline-block;
 }
 
-/* Lock column — always same width, even when empty */
+/* Lock column */
 .lockCol {
   width: 14px;
   flex-shrink: 0;
@@ -255,10 +244,8 @@
 .fileSizeCol { font-size: 11px; color: var(--hint); flex-shrink: 0; }
 .fileSize { font-size: 11px; color: var(--hint); flex-shrink: 0; }
 
-/* Folder name */
 .folderName { font-size: 12px; color: #ea9999; font-weight: 500; }
 
-/* Folder expand toggle button */
 .folderToggle {
   background: none;
   border: none;

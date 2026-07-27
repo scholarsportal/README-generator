@@ -47,8 +47,9 @@ export default function Sidebar({
   const allMinChecked = PINK_SECTIONS.every((s) => sections.includes(s))
   const allEnhChecked = GREEN_SECTIONS.every((s) => sections.includes(s))
 
-  // Select all: all files checked (unrestricted only for file list)
-  const allFilesChecked = files.length > 0 && files.every((f) => selectedIds.has(f.id))
+  // Only count unrestricted files for select-all (matches handleToggleAll in page.tsx)
+  const unrestrictedFiles = files.filter((f) => !f.restricted)
+  const allFilesChecked = unrestrictedFiles.length > 0 && unrestrictedFiles.every((f) => selectedIds.has(f.id))
   const tabularFiles = files.filter(isTabular)
   const allVarsChecked = tabularFiles.length > 0 && tabularFiles.every((f) => variableIds.has(f.id))
 
@@ -107,19 +108,6 @@ export default function Sidebar({
               <label className={styles.label} style={{ margin: 0 }}>Files to include</label>
               <span className={styles.pill}>{selectedIds.size} / {files.length}</span>
             </div>
-
-            {/* Legend */}
-            <div className={styles.fileLegend}>
-              <span className={styles.legendItem}>
-                <span className={styles.legendBadge}>①</span>
-                file list
-              </span>
-              <span className={styles.legendItem}>
-                <span className={styles.legendBadge}>②</span>
-                var list
-              </span>
-            </div>
-
             <div className={styles.fileTreeWrap}>
               <div className={styles.fileTree}>
                 {/* Select-all row */}
@@ -131,6 +119,7 @@ export default function Sidebar({
                       onChange={(e) => onToggleAll(e.target.checked)}
                       title="Select all files"
                     />
+                    <span className={styles.cbBadge}>①</span>
                   </div>
                   <div className={styles.cbCol}>
                     <input
@@ -139,6 +128,7 @@ export default function Sidebar({
                       onChange={(e) => toggleAllVars(e.target.checked)}
                       title="Select all variables"
                     />
+                    <span className={styles.cbBadge}>②</span>
                   </div>
                   <span className={styles.selectAllLabel}>select all</span>
                   <span className={styles.fileNameCol} />
@@ -339,7 +329,7 @@ function FileItem({ file, depth, checked, varChecked, onToggleFile, onToggleVari
   const [showTip, setShowTip] = useState(false)
 
   return (
-    <div className={styles.fileRow} style={{ paddingLeft: 8 + depth * 16 }}>
+    <div className={styles.fileRow} style={{ paddingLeft: 8 + depth * 20 }}>
       <div className={styles.cbCol}>
         <input type="checkbox" checked={checked} onChange={(e) => onToggleFile(file.id, e.target.checked)} />
       </div>
@@ -401,8 +391,7 @@ function FolderNode({ name, node, files, selectedIds, variableIds, onToggleFile,
 
   return (
     <>
-      <div className={styles.fileRow} style={{ paddingLeft: 8 + depth * 16 }}>
-        {/* file list checkbox aligned with cbCol */}
+      <div className={styles.fileRow} style={{ paddingLeft: 8 + depth * 20 }}>
         <div className={styles.cbCol}>
           <input
             type="checkbox"
@@ -410,7 +399,6 @@ function FolderNode({ name, node, files, selectedIds, variableIds, onToggleFile,
             onChange={(e) => allFileIds.forEach((id) => onToggleFile(id, e.target.checked))}
           />
         </div>
-        {/* var list checkbox aligned with cbCol */}
         <div className={styles.cbCol}>
           {hasTabular
             ? <input
@@ -421,7 +409,6 @@ function FolderNode({ name, node, files, selectedIds, variableIds, onToggleFile,
             : <span className={styles.cbPlaceholder} />
           }
         </div>
-        {/* folder toggle + icon + name */}
         <button className={styles.folderToggle} onClick={() => setOpen((o) => !o)}>
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ transform: open ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform .15s' }}>
             <path d="M3 2L7 5L3 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
