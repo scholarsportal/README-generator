@@ -103,48 +103,31 @@
   border-radius: 3px;
 }
 
-/* Header row: col labels on left, select all buttons on right */
-.fileColHeaderRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
-}
-
-.fileColHeaderLeft {
-  display: flex;
-  gap: 4px;
-}
-
-.colLabel {
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--hint);
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  padding: 1px 5px;
-}
-
-.selectAllBtns { display: flex; gap: 6px; }
-
-/* Fixed height scrollable file tree */
 .fileTreeWrap {
   height: 330px;
   overflow-y: auto;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 6px;
+  padding: 4px 6px;
 }
 
 .fileTree {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
-.fileItem {
+/*
+  Shared row layout — both header and file rows use this.
+  Columns (left to right):
+  1. cbCol (file list checkbox) — 16px
+  2. cbCol (var list checkbox)  — 16px
+  3. extBadge                   — auto (min 40px)
+  4. fileName                   — flex 1
+  5. fileSize                   — auto
+  6. lockCol                    — 14px
+*/
+.fileRow {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -156,21 +139,45 @@
   user-select: none;
   position: relative;
 }
-.fileItem:hover { border-color: var(--border); }
+.fileRow:hover { border-color: var(--border); }
 
-/* Two checkboxes side by side on the left */
-.checkboxGroup {
+.fileRowHeader {
+  background: transparent;
+  border-color: transparent !important;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border) !important;
+  border-radius: 0;
+  margin-bottom: 2px;
+}
+
+/* Each checkbox lives in a fixed-width column */
+.cbCol {
+  width: 13px;
+  height: 13px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
   flex-shrink: 0;
 }
-.checkboxGroup input[type='checkbox'] {
+.cbCol input[type='checkbox'] {
   width: 13px;
   height: 13px;
   accent-color: var(--accent);
   cursor: pointer;
   flex-shrink: 0;
+}
+
+/* Header labels sit directly above checkboxes */
+.headerLabel {
+  width: 13px;
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--hint);
+  text-align: center;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: visible;
 }
 
 .cbPlaceholder {
@@ -180,14 +187,20 @@
   display: inline-block;
 }
 
-/* Lock icon on the right */
+/* Lock column — always same width */
+.lockCol {
+  width: 14px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
 .unlockIcon {
   display: flex;
   align-items: center;
   color: var(--hint);
-  flex-shrink: 0;
-  margin-left: auto;
-  position: relative;
   cursor: default;
 }
 
@@ -228,6 +241,10 @@
   white-space: nowrap;
   font-size: 12px;
 }
+
+/* placeholder columns in header row */
+.fileNameCol { flex: 1; }
+.fileSizeCol { font-size: 11px; color: var(--hint); flex-shrink: 0; }
 
 .fileSize { font-size: 11px; color: var(--hint); flex-shrink: 0; }
 

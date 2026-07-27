@@ -47,6 +47,13 @@ export default function Sidebar({
   const allMinChecked = PINK_SECTIONS.every((s) => sections.includes(s))
   const allEnhChecked = GREEN_SECTIONS.every((s) => sections.includes(s))
 
+  const allFilesChecked = files.length > 0 && files.every((f) => selectedIds.has(f.id))
+  const allVarsChecked = files.filter(isTabular).length > 0 && files.filter(isTabular).every((f) => variableIds.has(f.id))
+
+  function toggleAllVars(checked: boolean) {
+    files.filter(isTabular).forEach((f) => onToggleVariable(f.id, checked))
+  }
+
   function toggleAllMin(checked: boolean) {
     PINK_SECTIONS.forEach((s) => {
       const has = sections.includes(s)
@@ -98,18 +105,22 @@ export default function Sidebar({
               <label className={styles.label} style={{ margin: 0 }}>Files to include</label>
               <span className={styles.pill}>{selectedIds.size} / {files.length}</span>
             </div>
-            <div className={styles.fileColHeaderRow}>
-              <div className={styles.fileColHeaderLeft}>
-                <span className={styles.colLabel}>file list</span>
-                <span className={styles.colLabel}>var list</span>
-              </div>
-              <div className={styles.selectAllBtns}>
-                <button className={`${styles.btn} ${styles.btnSm}`} onClick={() => onToggleAll(true)}>all</button>
-                <button className={`${styles.btn} ${styles.btnSm}`} onClick={() => onToggleAll(false)}>none</button>
-              </div>
-            </div>
             <div className={styles.fileTreeWrap}>
               <div className={styles.fileTree}>
+                {/* Header row — same structure as file rows */}
+                <div className={`${styles.fileRow} ${styles.fileRowHeader}`}>
+                  <div className={styles.cbCol}>
+                    <input type="checkbox" checked={allFilesChecked} onChange={(e) => onToggleAll(e.target.checked)} title="Select all" />
+                  </div>
+                  <div className={styles.cbCol}>
+                    <input type="checkbox" checked={allVarsChecked} onChange={(e) => toggleAllVars(e.target.checked)} title="Select all vars" />
+                  </div>
+                  <span className={styles.headerLabel}>file list</span>
+                  <span className={styles.headerLabel}>var list</span>
+                  <span className={styles.fileNameCol} />
+                  <span className={styles.fileSizeCol} />
+                  <span className={styles.lockCol} />
+                </div>
                 <TreeLevel
                   node={tree}
                   files={files}
@@ -303,39 +314,31 @@ function FileItem({ file, depth, checked, varChecked, onToggleFile, onToggleVari
   const [showTip, setShowTip] = useState(false)
 
   return (
-    <div className={styles.fileItem} style={{ paddingLeft: 8 + depth * 16 }}>
-      {/* Left: both checkboxes side by side */}
-      <div className={styles.checkboxGroup}>
-        <input
-          type="checkbox"
-          checked={checked}
-          onChange={(e) => onToggleFile(file.id, e.target.checked)}
-          title="Include in file list"
-        />
+    <div className={styles.fileRow} style={{ paddingLeft: 8 + depth * 16 }}>
+      <div className={styles.cbCol}>
+        <input type="checkbox" checked={checked} onChange={(e) => onToggleFile(file.id, e.target.checked)} />
+      </div>
+      <div className={styles.cbCol}>
         {tabular
-          ? <input
-              type="checkbox"
-              checked={varChecked}
-              onChange={(e) => onToggleVariable(file.id, e.target.checked)}
-              title="Include variables"
-            />
+          ? <input type="checkbox" checked={varChecked} onChange={(e) => onToggleVariable(file.id, e.target.checked)} />
           : <span className={styles.cbPlaceholder} />
         }
       </div>
       <span className={styles.extBadge}>{fileExt(file.name)}</span>
       <span className={styles.fileName} title={file.name}>{file.name}</span>
       <span className={styles.fileSize}>{formatBytes(file.size)}</span>
-      {/* Right: lock icon for restricted */}
-      {file.restricted && (
-        <span
-          className={styles.unlockIcon}
-          onMouseEnter={() => setShowTip(true)}
-          onMouseLeave={() => setShowTip(false)}
-        >
-          <UnlockIcon />
-          {showTip && <span className={styles.restrictedTip}>Restricted file</span>}
-        </span>
-      )}
+      <span className={styles.lockCol}>
+        {file.restricted && (
+          <span
+            className={styles.unlockIcon}
+            onMouseEnter={() => setShowTip(true)}
+            onMouseLeave={() => setShowTip(false)}
+          >
+            <UnlockIcon />
+            {showTip && <span className={styles.restrictedTip}>Restricted file</span>}
+          </span>
+        )}
+      </span>
     </div>
   )
 }
