@@ -47,11 +47,13 @@ export default function Sidebar({
   const allMinChecked = PINK_SECTIONS.every((s) => sections.includes(s))
   const allEnhChecked = GREEN_SECTIONS.every((s) => sections.includes(s))
 
+  // Select all: all files checked (unrestricted only for file list)
   const allFilesChecked = files.length > 0 && files.every((f) => selectedIds.has(f.id))
-  const allVarsChecked = files.filter(isTabular).length > 0 && files.filter(isTabular).every((f) => variableIds.has(f.id))
+  const tabularFiles = files.filter(isTabular)
+  const allVarsChecked = tabularFiles.length > 0 && tabularFiles.every((f) => variableIds.has(f.id))
 
   function toggleAllVars(checked: boolean) {
-    files.filter(isTabular).forEach((f) => onToggleVariable(f.id, checked))
+    tabularFiles.forEach((f) => onToggleVariable(f.id, checked))
   }
 
   function toggleAllMin(checked: boolean) {
@@ -105,22 +107,45 @@ export default function Sidebar({
               <label className={styles.label} style={{ margin: 0 }}>Files to include</label>
               <span className={styles.pill}>{selectedIds.size} / {files.length}</span>
             </div>
+
+            {/* Legend */}
+            <div className={styles.fileLegend}>
+              <span className={styles.legendItem}>
+                <span className={styles.legendBadge}>①</span>
+                file list
+              </span>
+              <span className={styles.legendItem}>
+                <span className={styles.legendBadge}>②</span>
+                var list
+              </span>
+            </div>
+
             <div className={styles.fileTreeWrap}>
               <div className={styles.fileTree}>
-                {/* Header row — same structure as file rows */}
-                <div className={`${styles.fileRow} ${styles.fileRowHeader}`}>
+                {/* Select-all row */}
+                <div className={`${styles.fileRow} ${styles.fileRowSelectAll}`}>
                   <div className={styles.cbCol}>
-                    <input type="checkbox" checked={allFilesChecked} onChange={(e) => onToggleAll(e.target.checked)} title="Select all" />
+                    <input
+                      type="checkbox"
+                      checked={allFilesChecked}
+                      onChange={(e) => onToggleAll(e.target.checked)}
+                      title="Select all files"
+                    />
                   </div>
                   <div className={styles.cbCol}>
-                    <input type="checkbox" checked={allVarsChecked} onChange={(e) => toggleAllVars(e.target.checked)} title="Select all vars" />
+                    <input
+                      type="checkbox"
+                      checked={allVarsChecked}
+                      onChange={(e) => toggleAllVars(e.target.checked)}
+                      title="Select all variables"
+                    />
                   </div>
-                  <span className={styles.headerLabel}>file list</span>
-                  <span className={styles.headerLabel}>var list</span>
+                  <span className={styles.selectAllLabel}>select all</span>
                   <span className={styles.fileNameCol} />
                   <span className={styles.fileSizeCol} />
                   <span className={styles.lockCol} />
                 </div>
+
                 <TreeLevel
                   node={tree}
                   files={files}
@@ -360,26 +385,53 @@ function FolderNode({ name, node, files, selectedIds, variableIds, onToggleFile,
 }) {
   const [open, setOpen] = useState(true)
 
-  function collectIds(n: TreeNode): number[] {
-    return [...n.files.map((f) => f.id), ...Object.values(n.dirs).flatMap(collectIds)]
+  function collectFileIds(n: TreeNode): number[] {
+    return [...n.files.map((f) => f.id), ...Object.values(n.dirs).flatMap(collectFileIds)]
   }
 
-  const allIds = collectIds(node)
-  const allChecked = allIds.length > 0 && allIds.every((id) => selectedIds.has(id))
+  function collectTabularIds(n: TreeNode): number[] {
+    return [...n.files.filter(isTabular).map((f) => f.id), ...Object.values(n.dirs).flatMap(collectTabularIds)]
+  }
+
+  const allFileIds = collectFileIds(node)
+  const allTabularIds = collectTabularIds(node)
+  const allChecked = allFileIds.length > 0 && allFileIds.every((id) => selectedIds.has(id))
+  const allVarChecked = allTabularIds.length > 0 && allTabularIds.every((id) => variableIds.has(id))
+  const hasTabular = allTabularIds.length > 0
 
   return (
     <>
-      <div className={styles.folderRow} style={{ paddingLeft: 8 + depth * 16 }}>
+      <div className={styles.fileRow} style={{ paddingLeft: 8 + depth * 16 }}>
+        {/* file list checkbox aligned with cbCol */}
+        <div className={styles.cbCol}>
+          <input
+            type="checkbox"
+            checked={allChecked}
+            onChange={(e) => allFileIds.forEach((id) => onToggleFile(id, e.target.checked))}
+          />
+        </div>
+        {/* var list checkbox aligned with cbCol */}
+        <div className={styles.cbCol}>
+          {hasTabular
+            ? <input
+                type="checkbox"
+                checked={allVarChecked}
+                onChange={(e) => allTabularIds.forEach((id) => onToggleVariable(id, e.target.checked))}
+              />
+            : <span className={styles.cbPlaceholder} />
+          }
+        </div>
+        {/* folder toggle + icon + name */}
         <button className={styles.folderToggle} onClick={() => setOpen((o) => !o)}>
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ transform: open ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform .15s' }}>
             <path d="M3 2L7 5L3 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
-        <input type="checkbox" className={styles.folderCb} checked={allChecked} onChange={(e) => allIds.forEach((id) => onToggleFile(id, e.target.checked))} />
-        <svg width="16" height="16" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0, color: '#ea9999' }}>
+        <svg width="14" height="14" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0, color: '#ea9999' }}>
           <path d="M1 3.5C1 2.67 1.67 2 2.5 2H4.5L5.5 3H9.5C10.33 3 11 3.67 11 4.5V8.5C11 9.33 10.33 10 9.5 10H2.5C1.67 10 1 9.33 1 8.5V3.5Z" fill="currentColor" opacity="0.2" stroke="currentColor" strokeWidth="1" />
         </svg>
         <span className={styles.folderName}>{name}</span>
+        <span className={styles.lockCol} />
       </div>
       {open && (
         <TreeLevel

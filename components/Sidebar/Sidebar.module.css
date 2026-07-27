@@ -91,7 +91,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .pill {
@@ -101,6 +101,27 @@
   color: var(--accent);
   padding: 2px 7px;
   border-radius: 3px;
+}
+
+/* Legend above the file list */
+.fileLegend {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--hint);
+}
+
+.legendBadge {
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 500;
 }
 
 .fileTreeWrap {
@@ -117,16 +138,7 @@
   gap: 1px;
 }
 
-/*
-  Shared row layout — both header and file rows use this.
-  Columns (left to right):
-  1. cbCol (file list checkbox) — 16px
-  2. cbCol (var list checkbox)  — 16px
-  3. extBadge                   — auto (min 40px)
-  4. fileName                   — flex 1
-  5. fileSize                   — auto
-  6. lockCol                    — 14px
-*/
+/* Shared row — file rows, folder rows, select-all row */
 .fileRow {
   display: flex;
   align-items: center;
@@ -141,7 +153,8 @@
 }
 .fileRow:hover { border-color: var(--border); }
 
-.fileRowHeader {
+/* Select-all row styling */
+.fileRowSelectAll {
   background: transparent;
   border-color: transparent !important;
   padding-bottom: 5px;
@@ -149,8 +162,17 @@
   border-radius: 0;
   margin-bottom: 2px;
 }
+.fileRowSelectAll:hover { border-color: transparent !important; border-bottom-color: var(--border) !important; }
 
-/* Each checkbox lives in a fixed-width column */
+.selectAllLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--hint);
+  flex-shrink: 0;
+}
+
+/* Checkbox column — fixed 13px wide */
 .cbCol {
   width: 13px;
   height: 13px;
@@ -167,19 +189,6 @@
   flex-shrink: 0;
 }
 
-/* Header labels sit directly above checkboxes */
-.headerLabel {
-  width: 13px;
-  font-size: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--hint);
-  text-align: center;
-  flex-shrink: 0;
-  white-space: nowrap;
-  overflow: visible;
-}
-
 .cbPlaceholder {
   width: 13px;
   height: 13px;
@@ -187,7 +196,7 @@
   display: inline-block;
 }
 
-/* Lock column — always same width */
+/* Lock column — always same width, even when empty */
 .lockCol {
   width: 14px;
   flex-shrink: 0;
@@ -242,24 +251,14 @@
   font-size: 12px;
 }
 
-/* placeholder columns in header row */
 .fileNameCol { flex: 1; }
 .fileSizeCol { font-size: 11px; color: var(--hint); flex-shrink: 0; }
-
 .fileSize { font-size: 11px; color: var(--hint); flex-shrink: 0; }
 
-.folderRow {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 8px;
-  font-size: 12px;
-  color: var(--muted);
-  user-select: none;
-}
-
+/* Folder name */
 .folderName { font-size: 12px; color: #ea9999; font-weight: 500; }
 
+/* Folder expand toggle button */
 .folderToggle {
   background: none;
   border: none;
@@ -271,8 +270,6 @@
   flex-shrink: 0;
 }
 .folderToggle:hover { color: var(--muted); }
-
-.folderCb { width: 13px; height: 13px; accent-color: #ea9999; cursor: pointer; flex-shrink: 0; }
 
 /* ── section toggles ── */
 .toggleItem {
