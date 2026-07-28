@@ -111,10 +111,10 @@ function App() {
       ])
       setMeta(metaData)
       setFiles(fileData)
-      const unrestricted = fileData.filter((f) => !f.restricted)
-      setSelectedIds(new Set(unrestricted.map((f) => f.id)))
+
+      setSelectedIds(new Set(fileData.filter((f) => !f.restricted).map((f) => f.id)))
       // default variable checkboxes unchecked
-      setVariableIds(new Set())
+      setVariableIds(new Set(fileData.filter((f) => !f.restricted && isTabular(f)).map((f) => f.id)))
       setStatus({ message: `loaded — ${fileData.length} files found`, state: 'done' })
     } catch (e) {
       setFetchError(String(e))
@@ -143,7 +143,7 @@ function App() {
   }, [])
 
   const handleToggleAll = useCallback((checked: boolean) => {
-    setSelectedIds(checked ? new Set(files.filter((f) => !f.restricted).map((f) => f.id)) : new Set())
+    setSelectedIds(checked ? new Set(files.map((f) => f.id)) : new Set())
   }, [files])
 
   const handleModeChange = useCallback((m: GenerationMode) => {
