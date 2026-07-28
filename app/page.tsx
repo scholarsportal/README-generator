@@ -205,10 +205,10 @@ function App() {
     a.click()
   }
 
-  async function handleSave(saveToken: string) {
+  async function handleSave(saveToken: string, filename: string) {
     setStatus({ message: 'uploading README to Borealis…', state: 'active' })
     try {
-      await saveReadme(pid, saveToken || token, markdown, signedUrls?.addFile, siteUrl || undefined)
+      await saveReadme(pid, saveToken || token, markdown, signedUrls?.addFile, siteUrl || undefined, filename)
       setStatus({ message: 'README saved to dataset ✓', state: 'done' })
     } catch (e) {
       setStatus({ message: String(e), state: 'error' })
@@ -238,7 +238,7 @@ function App() {
         hasReadme={!!markdown}
         onCopy={handleCopy}
         onDownload={handleDownload}
-        saveArea={markdown ? <SaveArea onSave={handleSave} hasSignedUrl={!!signedUrls?.addFile} /> : undefined}
+        saveArea={markdown ? <SaveArea onSave={handleSave} hasSignedUrl={!!signedUrls?.addFile} existingFiles={files.map((f) => f.name)} /> : undefined}
       />
       <div className={styles.layout}>
         <Sidebar

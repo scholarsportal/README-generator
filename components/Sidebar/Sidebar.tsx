@@ -157,7 +157,6 @@ export default function Sidebar({
                       title="Select all variables"
                     />
                   </div>
-                  <span className={styles.selectAllLabel}>select all</span>
                   <span className={styles.fileNameCol} />
                   <span className={styles.fileSizeCol} />
                   <span className={styles.lockCol} />

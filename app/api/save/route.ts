@@ -3,7 +3,7 @@ import { dataverseFetch } from '@/lib/borealis'
 
 export async function POST(req: NextRequest) {
   try {
-    const { pid, token, markdown, signedUrl, siteUrl } = await req.json()
+    const { pid, token, markdown, signedUrl, siteUrl, filename } = await req.json()
 
     if (!pid || !markdown) {
       return NextResponse.json({ message: 'Missing pid or markdown' }, { status: 400 })
@@ -13,29 +13,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Missing token or signed URL' }, { status: 400 })
     }
 
-    // Check existing files to determine README filename
-    let filename = 'README.md'
-    try {
-      const filesRes = signedUrl
-        ? await fetch(signedUrl.replace('/add?', '/versions/:latest/files?'))
-        : await dataverseFetch(
-            `/api/v1/datasets/:persistentId/versions/:latest/files?persistentId=${encodeURIComponent(pid)}`,
-            token,
-            siteUrl
-          )
-      if (filesRes.ok) {
-        const filesJson = await filesRes.json()
-        const existingNames: string[] = (filesJson.data || []).map((f: { label: string }) => f.label)
-        let n = 2
-        while (existingNames.includes(filename)) {
-          filename = `README_${n}.md`
-          n++
-        }
-      }
-    } catch {
-      // If we can't check, just use README.md
-    }
-
+    const finalFilename = filename || 'README.md'
     const boundary = `----FormBoundary${Math.random().toString(16).slice(2)}`
 
     const metaPart = JSON.stringify({
@@ -50,7 +28,7 @@ export async function POST(req: NextRequest) {
       '',
       metaPart,
       `--${boundary}`,
-      `Content-Disposition: form-data; name="file"; filename="${filename}"`,
+      `Content-Disposition: form-data; name="file"; filename="${finalFilename}"`,
       `Content-Type: text/markdown`,
       '',
       markdown,
@@ -77,7 +55,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    return NextResponse.json({ ok: true, filename })
+    return NextResponse.json({ ok: true, filename: finalFilename })
   } catch (e) {
     return NextResponse.json({ message: String(e) }, { status: 500 })
   }

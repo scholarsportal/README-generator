@@ -1,21 +1,37 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import styles from './SaveArea.module.css'
 
 interface SaveAreaProps {
-  onSave: (token: string) => Promise<void>
+  onSave: (token: string, filename: string) => Promise<void>
   hasSignedUrl: boolean
+  existingFiles?: string[]
 }
 
-export default function SaveArea({ onSave, hasSignedUrl }: SaveAreaProps) {
+function getDefaultFilename(existingFiles: string[]): string {
+  if (!existingFiles.includes('README.md')) return 'README.md'
+  let n = 2
+  while (existingFiles.includes(`README_${n}.md`)) n++
+  return `README_${n}.md`
+}
+
+export default function SaveArea({ onSave, hasSignedUrl, existingFiles = [] }: SaveAreaProps) {
   const [showModal, setShowModal] = useState(false)
   const [confirmed, setConfirmed] = useState(false)
+  const [filename, setFilename]   = useState('README.md')
   const [token, setToken]         = useState('')
   const [show, setShow]           = useState(false)
   const [saving, setSaving]       = useState(false)
   const [saved, setSaved]         = useState(false)
   const [error, setError]         = useState('')
+
+  function openModal() {
+    setConfirmed(false)
+    setError('')
+    setFilename(getDefaultFilename(existingFiles))
+    setShowModal(true)
+  }
 
   async function handleSave() {
     if (!confirmed) return
@@ -23,10 +39,14 @@ export default function SaveArea({ onSave, hasSignedUrl }: SaveAreaProps) {
       setError('Enter your Borealis API token to save.')
       return
     }
+    if (!filename.trim()) {
+      setError('Enter a filename.')
+      return
+    }
     setError('')
     setSaving(true)
     try {
-      await onSave(token)
+      await onSave(token, filename.trim())
       setSaved(true)
       setShowModal(false)
       setConfirmed(false)
@@ -37,12 +57,6 @@ export default function SaveArea({ onSave, hasSignedUrl }: SaveAreaProps) {
     } finally {
       setSaving(false)
     }
-  }
-
-  function openModal() {
-    setConfirmed(false)
-    setError('')
-    setShowModal(true)
   }
 
   return (
@@ -60,10 +74,20 @@ export default function SaveArea({ onSave, hasSignedUrl }: SaveAreaProps) {
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalTitle}>Add README to dataset?</div>
             <p className={styles.modalBody}>
-              This will upload <strong>README.md</strong> as a file to your dataset.
+              This will upload a README file to your dataset.
               Note: this saves a file, not dataset metadata.
-              If a README.md already exists, it will be saved as README_2.md, README_3.md, etc.
             </p>
+
+            <div className={styles.tokenRow}>
+              <label className={styles.tokenLabel}>Filename</label>
+              <input
+                type="text"
+                className={styles.input}
+                value={filename}
+                onChange={(e) => setFilename(e.target.value)}
+                placeholder="README.md"
+              />
+            </div>
 
             {!hasSignedUrl && (
               <div className={styles.tokenRow}>
@@ -92,7 +116,7 @@ export default function SaveArea({ onSave, hasSignedUrl }: SaveAreaProps) {
                 checked={confirmed}
                 onChange={(e) => setConfirmed(e.target.checked)}
               />
-              I understand and want to save README.md to this dataset
+              I understand and want to save {filename || 'README.md'} to this dataset
             </label>
 
             <div className={styles.modalActions}>

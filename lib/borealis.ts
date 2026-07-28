@@ -71,12 +71,13 @@ export async function saveReadme(
   token: string,
   markdown: string,
   signedUrl?: string,
+  filename?: string,
   siteUrl?: string
 ): Promise<void> {
   const res = await fetch('/api/save', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ pid, token, markdown, signedUrl, siteUrl }),
+    body: JSON.stringify({ pid, token, markdown, signedUrl, siteUrl, filename }),
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
