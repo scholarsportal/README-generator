@@ -73,3 +73,24 @@ body {
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 3px; }
+
+/* Version banner colors */
+:root {
+  --version-banner-bg: #f9f0f5;
+  --version-banner-border: #e8c8d8;
+  --version-banner-color: #b05a8a;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not(.light):not(.dark) {
+    --version-banner-bg: #2a1a22;
+    --version-banner-border: #5a3a4a;
+    --version-banner-color: #c08098;
+  }
+}
+
+html.dark {
+  --version-banner-bg: #2a1a22;
+  --version-banner-border: #5a3a4a;
+  --version-banner-color: #c08098;
+}
