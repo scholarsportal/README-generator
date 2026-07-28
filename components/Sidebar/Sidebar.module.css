@@ -505,12 +505,6 @@
   line-height: 1.4;
 }
 
-html.dark .versionBanner {
-  background: #2a1a22;
-  border-color: #5a3a4a;
-  color: #c08098;
-}
-
 /* ── version change modal ── */
 .versionModalOverlay {
   position: fixed;
