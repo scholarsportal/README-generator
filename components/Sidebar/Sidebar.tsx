@@ -48,9 +48,16 @@ export default function Sidebar({
   const allEnhChecked = GREEN_SECTIONS.every((s) => sections.includes(s))
 
   const unrestrictedFiles = files.filter((f) => !f.restricted)
-  const allFilesChecked = files.length > 0 && files.every((f) => selectedIds.has(f.id))
   const tabularFiles = files.filter(isTabular)
+  const allFilesChecked = files.length > 0 && files.every((f) => selectedIds.has(f.id))
   const allVarsChecked = tabularFiles.length > 0 && tabularFiles.every((f) => variableIds.has(f.id))
+  const hasRestricted = files.some((f) => f.restricted)
+
+  // counts
+  const fileCount = selectedIds.size
+  const fileTotal = files.length
+  const varCount = variableIds.size
+  const varTotal = tabularFiles.length
 
   function toggleAllVars(checked: boolean) {
     tabularFiles.forEach((f) => onToggleVariable(f.id, checked))
@@ -103,20 +110,37 @@ export default function Sidebar({
 
         {tree && (
           <div>
-            <div className={styles.fileHeader}>
-              <label className={styles.label} style={{ margin: 0 }}>Files to include</label>
-              <span className={styles.pill}>{selectedIds.size} / {files.length}</span>
+            <label className={styles.label}>Files to include</label>
+
+            {/* Legend box */}
+            <div className={styles.fileListLegend}>
+              <span className={styles.legendLine}>
+                <span className={styles.legendNum}>C1</span>
+                file list — include file in README
+                <span className={styles.legendCount}>{fileCount} / {fileTotal}</span>
+              </span>
+              <span className={styles.legendLine}>
+                <span className={styles.legendNum}>C2</span>
+                var list — include variable metadata
+                <span className={styles.legendCount}>{varCount} / {varTotal}</span>
+              </span>
+              {hasRestricted && (
+                <span className={styles.legendRestricted}>
+                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0 }}>
+                    <rect x="2" y="5" width="8" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.2"/>
+                    <path d="M4 5V3.5a2 2 0 0 1 4 0" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                  </svg>
+                  restricted files are unchecked by default
+                </span>
+              )}
             </div>
+
             <div className={styles.fileTreeWrap}>
               <div className={styles.fileTree}>
-                {/* Legend + select-all */}
-                <div className={styles.fileListLegend}>
-                  <span className={styles.legendLine}><span className={styles.legendNum}>1</span> file list — include file in README</span>
-                  <span className={styles.legendLine}><span className={styles.legendNum}>2</span> var list — include variable metadata</span>
-                </div>
+                {/* Select-all row */}
                 <div className={`${styles.fileRow} ${styles.fileRowSelectAll}`}>
                   <div className={styles.cbColHeader}>
-                    <span className={styles.cbBadge}>1</span>
+                    <span className={styles.cbBadge}>C1</span>
                     <input
                       type="checkbox"
                       checked={allFilesChecked}
@@ -125,7 +149,7 @@ export default function Sidebar({
                     />
                   </div>
                   <div className={styles.cbColHeader}>
-                    <span className={styles.cbBadge}>2</span>
+                    <span className={styles.cbBadge}>C2</span>
                     <input
                       type="checkbox"
                       checked={allVarsChecked}
@@ -133,6 +157,7 @@ export default function Sidebar({
                       title="Select all variables"
                     />
                   </div>
+                  <span className={styles.selectAllLabel}>select all</span>
                   <span className={styles.fileNameCol} />
                   <span className={styles.fileSizeCol} />
                   <span className={styles.lockCol} />
@@ -146,6 +171,7 @@ export default function Sidebar({
                   onToggleFile={onToggleFile}
                   onToggleVariable={onToggleVariable}
                   depth={0}
+                  pathPrefix=""
                 />
               </div>
             </div>
@@ -286,11 +312,12 @@ export default function Sidebar({
 
 // ── File tree ─────────────────────────────────────────────────────────────────
 
-function TreeLevel({ node, files, selectedIds, variableIds, onToggleFile, onToggleVariable, depth }: {
+function TreeLevel({ node, files, selectedIds, variableIds, onToggleFile, onToggleVariable, depth, pathPrefix }: {
   node: TreeNode; files: DataFile[]; selectedIds: Set<number>; variableIds: Set<number>
   onToggleFile: (id: number, checked: boolean) => void
   onToggleVariable: (id: number, checked: boolean) => void
   depth: number
+  pathPrefix: string
 }) {
   return (
     <>
@@ -309,6 +336,7 @@ function TreeLevel({ node, files, selectedIds, variableIds, onToggleFile, onTogg
         <FolderNode
           key={dirName}
           name={dirName}
+          fullPath={pathPrefix ? `${pathPrefix}/${dirName}` : dirName}
           node={child}
           files={files}
           selectedIds={selectedIds}
@@ -316,6 +344,7 @@ function TreeLevel({ node, files, selectedIds, variableIds, onToggleFile, onTogg
           onToggleFile={onToggleFile}
           onToggleVariable={onToggleVariable}
           depth={depth}
+          pathPrefix={pathPrefix ? `${pathPrefix}/${dirName}` : dirName}
         />
       ))}
     </>
@@ -331,7 +360,7 @@ function FileItem({ file, depth, checked, varChecked, onToggleFile, onToggleVari
   const [showTip, setShowTip] = useState(false)
 
   return (
-    <div className={styles.fileRow} style={{ paddingLeft: 8 + depth * 28 }}>
+    <div className={styles.fileRow}>
       <div className={styles.cbCol}>
         <input type="checkbox" checked={checked} onChange={(e) => onToggleFile(file.id, e.target.checked)} />
       </div>
@@ -341,6 +370,8 @@ function FileItem({ file, depth, checked, varChecked, onToggleFile, onToggleVari
           : <span className={styles.cbPlaceholder} />
         }
       </div>
+      {/* indent for folder depth */}
+      {depth > 0 && <span style={{ width: depth * 16, flexShrink: 0 }} />}
       <span className={styles.extBadge}>{fileExt(file.name)}</span>
       <span className={styles.fileName} title={file.name}>{file.name}</span>
       <span className={styles.fileSize}>{formatBytes(file.size)}</span>
@@ -369,11 +400,13 @@ function UnlockIcon() {
   )
 }
 
-function FolderNode({ name, node, files, selectedIds, variableIds, onToggleFile, onToggleVariable, depth }: {
-  name: string; node: TreeNode; files: DataFile[]; selectedIds: Set<number>; variableIds: Set<number>
+function FolderNode({ name, fullPath, node, files, selectedIds, variableIds, onToggleFile, onToggleVariable, depth, pathPrefix }: {
+  name: string; fullPath: string; node: TreeNode; files: DataFile[]
+  selectedIds: Set<number>; variableIds: Set<number>
   onToggleFile: (id: number, checked: boolean) => void
   onToggleVariable: (id: number, checked: boolean) => void
   depth: number
+  pathPrefix: string
 }) {
   const [open, setOpen] = useState(true)
 
@@ -393,7 +426,7 @@ function FolderNode({ name, node, files, selectedIds, variableIds, onToggleFile,
 
   return (
     <>
-      <div className={styles.fileRow} style={{ paddingLeft: 8 + depth * 28 }}>
+      <div className={styles.fileRow}>
         <div className={styles.cbCol}>
           <input
             type="checkbox"
@@ -411,6 +444,8 @@ function FolderNode({ name, node, files, selectedIds, variableIds, onToggleFile,
             : <span className={styles.cbPlaceholder} />
           }
         </div>
+        {/* indent for nested folders */}
+        {depth > 0 && <span style={{ width: depth * 16, flexShrink: 0 }} />}
         <button className={styles.folderToggle} onClick={() => setOpen((o) => !o)}>
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ transform: open ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform .15s' }}>
             <path d="M3 2L7 5L3 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -419,7 +454,7 @@ function FolderNode({ name, node, files, selectedIds, variableIds, onToggleFile,
         <svg width="14" height="14" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0, color: '#ea9999' }}>
           <path d="M1 3.5C1 2.67 1.67 2 2.5 2H4.5L5.5 3H9.5C10.33 3 11 3.67 11 4.5V8.5C11 9.33 10.33 10 9.5 10H2.5C1.67 10 1 9.33 1 8.5V3.5Z" fill="currentColor" opacity="0.2" stroke="currentColor" strokeWidth="1" />
         </svg>
-        <span className={styles.folderName}>{name}</span>
+        <span className={styles.folderName}>{fullPath}</span>
         <span className={styles.lockCol} />
       </div>
       {open && (
@@ -431,6 +466,7 @@ function FolderNode({ name, node, files, selectedIds, variableIds, onToggleFile,
           onToggleFile={onToggleFile}
           onToggleVariable={onToggleVariable}
           depth={depth + 1}
+          pathPrefix={pathPrefix}
         />
       )}
     </>

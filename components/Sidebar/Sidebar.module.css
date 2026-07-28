@@ -87,33 +87,20 @@
 }
 
 /* ── file tree ── */
-.fileHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
-}
-
-.pill {
-  font-size: 10px;
-  font-weight: 500;
-  background: var(--accent-bg);
-  color: var(--accent);
-  padding: 2px 7px;
-  border-radius: 3px;
-}
-
-/* Legend above file list */
 .fileListLegend {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  margin-bottom: 6px;
+  gap: 3px;
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
 }
 
 .legendLine {
   font-size: 10px;
-  color: var(--hint);
+  color: var(--muted);
   display: flex;
   align-items: center;
   gap: 5px;
@@ -122,9 +109,30 @@
 
 .legendNum {
   font-size: 10px;
-  color: var(--muted);
+  color: var(--text);
   font-weight: 700;
   flex-shrink: 0;
+}
+
+.legendCount {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--hint);
+  font-weight: 500;
+  background: var(--accent-bg);
+  color: var(--accent);
+  padding: 1px 5px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.legendRestricted {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: #b05a8a;
+  margin-top: 2px;
 }
 
 .fileTreeWrap {
@@ -178,31 +186,7 @@
   flex-shrink: 0;
 }
 
-/* Checkbox column with badge */
-.cbCol {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  flex-shrink: 0;
-}
-.cbCol input[type='checkbox'] {
-  width: 13px;
-  height: 13px;
-  accent-color: var(--accent);
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.cbBadge {
-  font-size: 9px;
-  color: var(--muted);
-  font-weight: 700;
-  line-height: 1;
-  flex-shrink: 0;
-  user-select: none;
-}
-
-/* Checkbox column with badge stacked above — for select-all row */
+/* Checkbox column with badge stacked above */
 .cbColHeader {
   display: flex;
   flex-direction: column;
@@ -211,6 +195,29 @@
   flex-shrink: 0;
 }
 .cbColHeader input[type='checkbox'] {
+  width: 13px;
+  height: 13px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.cbBadge {
+  font-size: 8px;
+  color: var(--muted);
+  font-weight: 700;
+  line-height: 1;
+  flex-shrink: 0;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Regular checkbox column */
+.cbCol {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.cbCol input[type='checkbox'] {
   width: 13px;
   height: 13px;
   accent-color: var(--accent);
