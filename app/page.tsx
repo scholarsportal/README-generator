@@ -100,6 +100,7 @@ function App() {
       if (!resolvedVersion) {
         const versionData = await fetchVersions(resolvedPid, resolvedToken, site)
         setVersions(versionData)
+        if (versionData.length > 0) setVersion(versionData[0].value)
       }
       setStatus({ message: `loaded — ${fileData.length} files found`, state: 'done' })
     } catch (e) {
