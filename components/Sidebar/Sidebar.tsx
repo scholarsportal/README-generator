@@ -27,6 +27,7 @@ interface SidebarProps {
   onAddCustomSection: (section: CustomSection) => void
   onRemoveCustomSection: (id: string) => void
   onUpdateCustomSection: (id: string, field: 'title' | 'content', value: string) => void
+  hasReadme: boolean
   version: string
   versions: { label: string; value: string }[]
   onVersionChange: (v: string) => void
@@ -41,7 +42,7 @@ export default function Sidebar({
   sections, onToggleSection,
   mode, onModeChange,
   customSections, onAddCustomSection, onRemoveCustomSection, onUpdateCustomSection,
-  version, versions, onVersionChange,
+  hasReadme, version, versions, onVersionChange,
   onGenerate, generating,
   error,
 }: SidebarProps) {
@@ -83,8 +84,39 @@ export default function Sidebar({
     })
   }
 
+  const [pendingVersion, setPendingVersion] = useState<string | null>(null)
+
+  function handleVersionChange(v: string) {
+    if (hasReadme) {
+      setPendingVersion(v)
+    } else {
+      onVersionChange(v)
+    }
+  }
+
   return (
     <aside className={styles.sidebar}>
+      {/* Version change confirmation modal */}
+      {pendingVersion && (
+        <div className={styles.versionModalOverlay} onClick={() => setPendingVersion(null)}>
+          <div className={styles.versionModal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.versionModalTitle}>Change version?</div>
+            <p className={styles.versionModalBody}>
+              Your current README will be cleared when you switch versions.
+              Make sure to save or download it first if you need it.
+            </p>
+            <div className={styles.versionModalActions}>
+              <button className={styles.btn} onClick={() => setPendingVersion(null)}>cancel</button>
+              <button
+                className={`${styles.btn} ${styles.btnAccent}`}
+                onClick={() => { onVersionChange(pendingVersion); setPendingVersion(null); }}
+              >
+                proceed
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className={styles.scroll}>
 
         {fetching && (
@@ -119,7 +151,7 @@ export default function Sidebar({
             <select
               className={styles.versionSelect}
               value={version}
-              onChange={(e) => onVersionChange(e.target.value)}
+              onChange={(e) => handleVersionChange(e.target.value)}
             >
               {versions.map((v) => (
                 <option key={v.value} value={v.value}>{v.label}</option>
@@ -129,14 +161,14 @@ export default function Sidebar({
         )}
 
         {/* Version banner when non-latest selected */}
-        {version !== ':latest' && (
+        {versions.length > 0 && version !== versions[0]?.value && (
           <div className={styles.versionBanner}>
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0 }}>
               <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2"/>
               <path d="M6 4V6.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
               <circle cx="6" cy="8.5" r="0.6" fill="currentColor"/>
             </svg>
-            Viewing version {versions.find((v) => v.value === version)?.label || version}
+            Not the most recent version — viewing {versions.find((v) => v.value === version)?.label || version}
           </div>
         )}
 

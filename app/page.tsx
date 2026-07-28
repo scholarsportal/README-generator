@@ -228,6 +228,7 @@ function App() {
           onUpdateCustomSection={handleUpdateCustomSection}
           onGenerate={handleGenerate}
           generating={generating}
+          hasReadme={!!markdown}
           version={version}
           versions={versions}
           onVersionChange={(v) => { setVersion(v); handleFetch(pid, signedUrls, siteUrl || undefined, v); }}
