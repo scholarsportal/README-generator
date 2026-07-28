@@ -47,9 +47,8 @@ export default function Sidebar({
   const allMinChecked = PINK_SECTIONS.every((s) => sections.includes(s))
   const allEnhChecked = GREEN_SECTIONS.every((s) => sections.includes(s))
 
-  // Only count unrestricted files for select-all
   const unrestrictedFiles = files.filter((f) => !f.restricted)
-  const allFilesChecked = unrestrictedFiles.length > 0 && unrestrictedFiles.every((f) => selectedIds.has(f.id)) && !files.some((f) => f.restricted && selectedIds.has(f.id))
+  const allFilesChecked = files.length > 0 && files.every((f) => selectedIds.has(f.id))
   const tabularFiles = files.filter(isTabular)
   const allVarsChecked = tabularFiles.length > 0 && tabularFiles.every((f) => variableIds.has(f.id))
 
@@ -112,12 +111,12 @@ export default function Sidebar({
               <div className={styles.fileTree}>
                 {/* Legend + select-all */}
                 <div className={styles.fileListLegend}>
-                  <span className={styles.legendLine}><span className={styles.legendNum}>①</span> file list — include file in README</span>
-                  <span className={styles.legendLine}><span className={styles.legendNum}>②</span> var list — include variable metadata</span>
+                  <span className={styles.legendLine}><span className={styles.legendNum}>1</span> file list — include file in README</span>
+                  <span className={styles.legendLine}><span className={styles.legendNum}>2</span> var list — include variable metadata</span>
                 </div>
                 <div className={`${styles.fileRow} ${styles.fileRowSelectAll}`}>
                   <div className={styles.cbColHeader}>
-                    <span className={styles.cbBadge}>①</span>
+                    <span className={styles.cbBadge}>1</span>
                     <input
                       type="checkbox"
                       checked={allFilesChecked}
@@ -126,7 +125,7 @@ export default function Sidebar({
                     />
                   </div>
                   <div className={styles.cbColHeader}>
-                    <span className={styles.cbBadge}>②</span>
+                    <span className={styles.cbBadge}>2</span>
                     <input
                       type="checkbox"
                       checked={allVarsChecked}
@@ -134,7 +133,6 @@ export default function Sidebar({
                       title="Select all variables"
                     />
                   </div>
-                  <span className={styles.selectAllLabel}>select all</span>
                   <span className={styles.fileNameCol} />
                   <span className={styles.fileSizeCol} />
                   <span className={styles.lockCol} />
