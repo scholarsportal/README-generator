@@ -442,7 +442,7 @@
 .customContentInput {
   font-family: var(--mono);
   font-size: 12px;
-  width: fit-content;
+  width: 100%;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -473,7 +473,8 @@
 .versionSelect {
   font-family: var(--mono);
   font-size: 12px;
-  width: 100%;
+  width: fit-content;
+  min-width: 80px;
   background: var(--surface2);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -489,6 +490,26 @@
   padding-right: 28px;
 }
 .versionSelect:focus { border-color: var(--accent); }
+
+/* ── version banner ── */
+.versionBanner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #b05a8a;
+  background: #f9f0f5;
+  border: 1px solid #e8c8d8;
+  border-radius: var(--radius);
+  padding: 6px 10px;
+  line-height: 1.4;
+}
+
+html.dark .versionBanner {
+  background: #1e0e18;
+  border-color: #4a2a3a;
+  color: #d090b0;
+}
 
 /* ── fetching state ── */
 .fetchingState {

@@ -1,5 +1,4 @@
 'use client'
-
 import { Suspense } from 'react'
 import { useState, useCallback, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
@@ -12,7 +11,6 @@ import Sidebar from '@/components/Sidebar/Sidebar'
 import Viewer from '@/components/Viewer/Viewer'
 import SaveArea from '@/components/SaveArea'
 import styles from './page.module.css'
-
 export default function Home() {
   return (
     <Suspense>
@@ -20,11 +18,8 @@ export default function Home() {
     </Suspense>
   )
 }
-
 function App() {
   const searchParams = useSearchParams()
-
-  // ── dataset state ──
   const [pid, setPid]               = useState('')
   const [siteUrl, setSiteUrl]       = useState('')
   const [token, setToken]           = useState('')
@@ -33,29 +28,23 @@ function App() {
   const [files, setFiles]           = useState<DataFile[]>([])
   const [selectedIds, setSelectedIds]   = useState<Set<number>>(new Set())
   const [variableIds, setVariableIds]   = useState<Set<number>>(new Set())
-  const [version, setVersion]         = useState(":latest")
+  const [version, setVersion]         = useState(':latest')
   const [versions, setVersions]       = useState<{ label: string; value: string }[]>([])
   const [fetching, setFetching]     = useState(false)
   const [fetchError, setFetchError] = useState('')
-
-  // ── readme state ──
   const [mode, setMode]             = useState<GenerationMode>('basic')
   const [sections, setSections]     = useState<Section[]>(DEFAULT_SECTIONS)
   const [customSections, setCustomSections] = useState<CustomSection[]>([])
   const [markdown, setMarkdown]     = useState('')
   const [generating, setGenerating] = useState(false)
-
-  // ── ui state ──
   const [tab, setTab]               = useState<Tab>('preview')
   const [status, setStatus]         = useState<Status>({ message: 'loading dataset…', state: 'active' })
   const [launched, setLaunched]     = useState(false)
-
   useEffect(() => {
     async function init() {
       const callbackParam = searchParams.get('callback')
       const directPid     = searchParams.get('datasetPid')
       const directSiteUrl = searchParams.get('siteUrl') || ''
-
       if (callbackParam) {
         setLaunched(true)
         setStatus({ message: 'connecting to Dataverse…', state: 'active' })
@@ -71,7 +60,6 @@ function App() {
         }
         return
       }
-
       if (directPid) {
         setLaunched(true)
         const signed = parseSignedUrls(searchParams)
@@ -81,17 +69,12 @@ function App() {
         await handleFetch(directPid, signed, directSiteUrl)
         return
       }
-
       setLaunched(false)
       setStatus({ message: 'ready', state: 'idle' })
     }
-
     init()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  // ── fetch ──────────────────────────────────────────────────────────────────
-
   async function handleFetch(resolvedPid: string, resolvedSigned?: SignedUrls, resolvedSiteUrl?: string, resolvedVersion?: string) {
     if (!resolvedPid) return
     setFetching(true)
@@ -102,23 +85,22 @@ function App() {
     setSelectedIds(new Set())
     setVariableIds(new Set())
     setMarkdown('')
-
     const resolvedToken = token || undefined
     const site = resolvedSiteUrl || siteUrl || undefined
-
+    const ver = resolvedVersion || version
     try {
       const [metaData, fileData] = await Promise.all([
-        fetchDatasetMeta(resolvedPid, resolvedSigned, resolvedToken, site),
-        fetchFiles(resolvedPid, resolvedVersion || version, resolvedSigned, resolvedToken, site),
+        fetchDatasetMeta(resolvedPid, resolvedSigned, resolvedToken, site, ver),
+        fetchFiles(resolvedPid, ver, resolvedSigned, resolvedToken, site),
       ])
       setMeta(metaData)
       setFiles(fileData)
-
       setSelectedIds(new Set(fileData.filter((f) => !f.restricted).map((f) => f.id)))
-      // default variable checkboxes unchecked
       setVariableIds(new Set(fileData.filter((f) => !f.restricted && isTabular(f)).map((f) => f.id)))
-      if (!resolvedVersion) { const versionData = await fetchVersions(resolvedPid, resolvedToken, site)
-        setVersions(versionData); }
+      if (!resolvedVersion) {
+        const versionData = await fetchVersions(resolvedPid, resolvedToken, site)
+        setVersions(versionData)
+      }
       setStatus({ message: `loaded — ${fileData.length} files found`, state: 'done' })
     } catch (e) {
       setFetchError(String(e))
@@ -127,9 +109,6 @@ function App() {
       setFetching(false)
     }
   }
-
-  // ── file selection ─────────────────────────────────────────────────────────
-
   const handleToggleFile = useCallback((id: number, checked: boolean) => {
     setSelectedIds((prev) => {
       const next = new Set(prev)
@@ -137,7 +116,6 @@ function App() {
       return next
     })
   }, [])
-
   const handleToggleVariable = useCallback((id: number, checked: boolean) => {
     setVariableIds((prev) => {
       const next = new Set(prev)
@@ -145,62 +123,48 @@ function App() {
       return next
     })
   }, [])
-
   const handleToggleAll = useCallback((checked: boolean) => {
     setSelectedIds(checked ? new Set(files.map((f) => f.id)) : new Set())
   }, [files])
-
   const handleModeChange = useCallback((m: GenerationMode) => {
     setMode(m)
     if (m === 'advanced') setSections(DEFAULT_SECTIONS)
   }, [])
-
   const handleToggleSection = useCallback((s: Section) => {
     setSections((prev) =>
       prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]
     )
   }, [])
-
   const handleAddCustomSection = useCallback((section: CustomSection) => {
     setCustomSections((prev) => [...prev, section])
   }, [])
-
   const handleRemoveCustomSection = useCallback((id: string) => {
     setCustomSections((prev) => prev.filter((s) => s.id !== id))
   }, [])
-
   const handleUpdateCustomSection = useCallback((id: string, field: 'title' | 'content', value: string) => {
     setCustomSections((prev) => prev.map((s) => s.id === id ? { ...s, [field]: value } : s))
   }, [])
-
-  // ── generate ───────────────────────────────────────────────────────────────
-
   async function handleGenerate() {
     if (!meta) return
     setGenerating(true)
-
     const activeSections: Section[] = mode === 'basic' ? PINK_SECTIONS : sections
     const selectedFiles = files.filter((f) => selectedIds.has(f.id))
     const tabularFiles  = selectedFiles.filter(isTabular).filter((f) => variableIds.has(f.id))
     const resolvedToken = token || undefined
     const site = siteUrl || undefined
-
     const variableMap = new Map<number, Awaited<ReturnType<typeof fetchVariables>>>()
     for (const f of tabularFiles) {
       setStatus({ message: `fetching variables for ${f.name}…`, state: 'active' })
       const vars = await fetchVariables(f.id, signedUrls, resolvedToken, site)
       variableMap.set(f.id, vars)
     }
-
     setStatus({ message: 'generating README…', state: 'active' })
     const md = generateReadme({ meta, selectedFiles, allFiles: files, sections: activeSections, variableMap, customSections: mode === 'advanced' ? customSections : [] })
     setMarkdown(md)
     setStatus({ message: `README generated (${mode} mode)`, state: 'done' })
     setGenerating(false)
   }
-
   function handleCopy() { navigator.clipboard.writeText(markdown) }
-
   function handleDownload(ext: 'md' | 'txt') {
     const name = (meta?.title || 'README').replace(/[^a-z0-9]/gi, '_').slice(0, 40)
     const mimeType = ext === 'md' ? 'text/markdown' : 'text/plain'
@@ -208,7 +172,6 @@ function App() {
     const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `README_${name}.${ext}` })
     a.click()
   }
-
   async function handleSave(saveToken: string, filename: string) {
     setStatus({ message: 'uploading README to Borealis…', state: 'active' })
     try {
@@ -219,7 +182,6 @@ function App() {
       throw e
     }
   }
-
   if (!launched && status.state === 'idle') {
     return (
       <div className={styles.app}>
@@ -235,7 +197,6 @@ function App() {
       </div>
     )
   }
-
   return (
     <div className={styles.app}>
       <Header

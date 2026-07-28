@@ -128,6 +128,18 @@ export default function Sidebar({
           </div>
         )}
 
+        {/* Version banner when non-latest selected */}
+        {version !== ':latest' && (
+          <div className={styles.versionBanner}>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0 }}>
+              <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2"/>
+              <path d="M6 4V6.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+              <circle cx="6" cy="8.5" r="0.6" fill="currentColor"/>
+            </svg>
+            Viewing version {versions.find((v) => v.value === version)?.label || version}
+          </div>
+        )}
+
         {tree && (
           <div>
             <label className={styles.label}>Files to include</label>

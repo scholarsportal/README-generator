@@ -8,9 +8,11 @@ export async function fetchDatasetMeta(
   pid: string,
   signed?: SignedUrls,
   token?: string,
-  siteUrl?: string
+  siteUrl?: string,
+  version?: string
 ): Promise<DatasetMeta> {
   const params = new URLSearchParams({ pid })
+  if (version) params.set('version', version)
   if (token) params.set('token', token)
   if (siteUrl) params.set('siteUrl', siteUrl)
   const headers: Record<string, string> = {}

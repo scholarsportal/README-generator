@@ -17,9 +17,9 @@ function errorMessage(status: number, body: { message?: string }): string {
 
 export async function GET(req: NextRequest) {
   const pid       = req.nextUrl.searchParams.get('pid')
+  const version   = req.nextUrl.searchParams.get('version') || ':latest'
   const signedUrlRaw = req.headers.get('x-signed-url') || req.nextUrl.searchParams.get('signedUrl')
   const signedUrl = signedUrlRaw ? decodeURIComponent(signedUrlRaw) : null
-  console.log('[dataset] signedUrl FULL:', JSON.stringify(signedUrlRaw))
   const token     = req.nextUrl.searchParams.get('token') || undefined
   const siteUrl   = req.nextUrl.searchParams.get('siteUrl') || undefined
 
@@ -33,10 +33,11 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    // Fetch the specific version's metadata
     const res = signedUrl
       ? await fetch(signedUrl)
       : await dataverseFetch(
-          `/api/v1/datasets/:persistentId/?persistentId=${encodeURIComponent(pid!)}`,
+          `/api/v1/datasets/:persistentId/versions/${version}?persistentId=${encodeURIComponent(pid!)}`,
           token,
           siteUrl
         )
@@ -49,10 +50,12 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    const json    = await res.json()
-    const latest  = json.data.latestVersion
-    const cite: Record<string, unknown>[] = latest.metadataBlocks?.citation?.fields   || []
-    const geo:  Record<string, unknown>[] = latest.metadataBlocks?.geospatial?.fields || []
+    const json = await res.json()
+    // Version endpoint returns data directly, not wrapped in latestVersion
+    const v = json.data
+
+    const cite: Record<string, unknown>[] = v.metadataBlocks?.citation?.fields   || []
+    const geo:  Record<string, unknown>[] = v.metadataBlocks?.geospatial?.fields || []
 
     type RawField = { typeName: string; typeClass: string; value: unknown }
     type CompoundValue = Record<string, { value: string }>
@@ -79,50 +82,50 @@ export async function GET(req: NextRequest) {
     }
 
     const authorField = compoundField('author')
-    const authors = authorField.map((v) => {
-      const name = subval(v, 'authorName')
-      const aff  = subval(v, 'authorAffiliation')
+    const authors = authorField.map((a) => {
+      const name = subval(a, 'authorName')
+      const aff  = subval(a, 'authorAffiliation')
       return aff ? `${name} (${aff})` : name
     }).filter(Boolean).join('; ')
 
     const contactField = compoundField('datasetContact')
-    const contact = contactField.map((v) => ({
-      name:        subval(v, 'datasetContactName'),
-      affiliation: subval(v, 'datasetContactAffiliation'),
-      email:       subval(v, 'datasetContactEmail'),
+    const contact = contactField.map((c) => ({
+      name:        subval(c, 'datasetContactName'),
+      affiliation: subval(c, 'datasetContactAffiliation'),
+      email:       subval(c, 'datasetContactEmail'),
     })).filter((c) => c.name)
 
     const descField = compoundField('dsDescription')
-    const description = descField.map((v) => subval(v, 'dsDescriptionValue')).filter(Boolean).join('\n\n')
+    const description = descField.map((d) => subval(d, 'dsDescriptionValue')).filter(Boolean).join('\n\n')
 
     const softwareField = compoundField('software')
-    const software = softwareField.map((v) => ({
-      name:    subval(v, 'softwareName'),
-      version: subval(v, 'softwareVersion'),
+    const software = softwareField.map((s) => ({
+      name:    subval(s, 'softwareName'),
+      version: subval(s, 'softwareVersion'),
     })).filter((s) => s.name)
 
     const contributorField = compoundField('contributor')
-    const contributors = contributorField.map((v) => ({
-      type: subval(v, 'contributorType'),
-      name: subval(v, 'contributorName'),
+    const contributors = contributorField.map((c) => ({
+      type: subval(c, 'contributorType'),
+      name: subval(c, 'contributorName'),
     })).filter((c) => c.name)
 
     const dateCollField = compoundField('dateOfCollection')
-    const dateOfCollection = dateCollField.map((v) => ({
-      start: subval(v, 'dateOfCollectionStart'),
-      end:   subval(v, 'dateOfCollectionEnd'),
+    const dateOfCollection = dateCollField.map((d) => ({
+      start: subval(d, 'dateOfCollectionStart'),
+      end:   subval(d, 'dateOfCollectionEnd'),
     })).filter((d) => d.start || d.end)
 
     const grantField = compoundField('grantNumber')
-    const funding = grantField.map((v) => ({
-      agency: subval(v, 'grantNumberAgency'),
-      grant:  subval(v, 'grantNumberValue'),
+    const funding = grantField.map((f) => ({
+      agency: subval(f, 'grantNumberAgency'),
+      grant:  subval(f, 'grantNumberValue'),
     })).filter((f) => f.agency || f.grant)
 
     const pubField = compoundField('publication')
-    const relatedPublications = pubField.map((v) => ({
-      citation: subval(v, 'publicationCitation'),
-      url:      subval(v, 'publicationURL') || subval(v, 'publicationIDNumber'),
+    const relatedPublications = pubField.map((p) => ({
+      citation: subval(p, 'publicationCitation'),
+      url:      subval(p, 'publicationURL') || subval(p, 'publicationIDNumber'),
     })).filter((p) => p.citation || p.url)
 
     const dataSourcesField = findField(cite, 'dataSources')
@@ -133,17 +136,17 @@ export async function GET(req: NextRequest) {
       : []
 
     const timePeriodField = compoundField('timePeriodCovered')
-    const timePeriod = timePeriodField.map((v) => ({
-      start: subval(v, 'timePeriodCoveredStart'),
-      end:   subval(v, 'timePeriodCoveredEnd'),
+    const timePeriod = timePeriodField.map((t) => ({
+      start: subval(t, 'timePeriodCoveredStart'),
+      end:   subval(t, 'timePeriodCoveredEnd'),
     })).filter((t) => t.start || t.end)
 
     const geoCovField = compoundField('geographicCoverage', geo)
-    const geographicCoverage = geoCovField.map((v) => ({
-      country: subval(v, 'country'),
-      state:   subval(v, 'state'),
-      city:    subval(v, 'city'),
-      other:   subval(v, 'otherGeographicCoverage'),
+    const geographicCoverage = geoCovField.map((g) => ({
+      country: subval(g, 'country'),
+      state:   subval(g, 'state'),
+      city:    subval(g, 'city'),
+      other:   subval(g, 'otherGeographicCoverage'),
     })).filter((g) => g.country || g.state || g.city || g.other)
 
     const meta: DatasetMeta = {
@@ -152,11 +155,11 @@ export async function GET(req: NextRequest) {
       description,
       keywords:            primitiveField('keyword'),
       subject:             primitiveField('subject'),
-      doi:                 json.data.persistentUrl || pid || '',
-      publisher:           json.data.publisher || 'Borealis',
-      year:                latest.releaseTime ? new Date(latest.releaseTime).getFullYear().toString() : '',
-      license:             latest.license?.name || '',
-      version:             latest.versionNumber ? `${latest.versionNumber}.${latest.versionMinorNumber}` : '',
+      doi:                 v.datasetPersistentId || pid || '',
+      publisher:           'Borealis',
+      year:                v.releaseTime ? new Date(v.releaseTime).getFullYear().toString() : '',
+      license:             v.license?.name || '',
+      version:             v.versionState === 'DRAFT' ? 'DRAFT' : v.versionNumber ? `${v.versionNumber}.${v.versionMinorNumber}` : '',
       software,
       contributors,
       dateOfCollection,
