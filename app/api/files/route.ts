@@ -7,11 +7,12 @@ const USE_MOCK = process.env.USE_MOCK === 'true'
 const DEFAULT_PID = 'doi:10.5683/SP3/7HWSTS'
 
 export async function GET(req: NextRequest) {
-  const pid       = req.nextUrl.searchParams.get('pid')
+  const pid        = req.nextUrl.searchParams.get('pid')
+  const version    = req.nextUrl.searchParams.get('version') || ':latest'
   const signedUrlRaw = req.headers.get('x-signed-url') || req.nextUrl.searchParams.get('signedUrl')
-  const signedUrl = signedUrlRaw ? decodeURIComponent(signedUrlRaw) : null
-  const token     = req.nextUrl.searchParams.get('token') || undefined
-  const siteUrl   = req.nextUrl.searchParams.get('siteUrl') || undefined
+  const signedUrl  = signedUrlRaw ? decodeURIComponent(signedUrlRaw) : null
+  const token      = req.nextUrl.searchParams.get('token') || undefined
+  const siteUrl    = req.nextUrl.searchParams.get('siteUrl') || undefined
 
   if (!pid && !signedUrl) {
     return NextResponse.json({ message: 'Missing pid or signedUrl' }, { status: 400 })
@@ -26,7 +27,7 @@ export async function GET(req: NextRequest) {
     const res = signedUrl
       ? await fetch(signedUrl)
       : await dataverseFetch(
-          `/api/v1/datasets/:persistentId/versions/:latest/files?persistentId=${encodeURIComponent(pid!)}`,
+          `/api/v1/datasets/:persistentId/versions/${version}/files?persistentId=${encodeURIComponent(pid!)}`,
           token,
           siteUrl
         )

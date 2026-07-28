@@ -28,11 +28,13 @@ export async function fetchDatasetMeta(
 
 export async function fetchFiles(
   pid: string,
+  version?: string,
   signed?: SignedUrls,
   token?: string,
   siteUrl?: string
 ): Promise<DataFile[]> {
   const params = new URLSearchParams({ pid })
+  if (version) params.set("version", version)
   if (token) params.set('token', token)
   if (siteUrl) params.set('siteUrl', siteUrl)
   const headers: Record<string, string> = {}
@@ -140,4 +142,19 @@ export async function resolveCallback(callbackParam: string): Promise<CallbackRe
 
   if (!pid) throw new Error('Callback response did not include a dataset PID.')
   return { pid, signedUrls }
+}
+
+// ── Dataset versions ──────────────────────────────────────────────────────────
+
+export async function fetchVersions(
+  pid: string,
+  token?: string,
+  siteUrl?: string
+): Promise<{ label: string; value: string }[]> {
+  const params = new URLSearchParams({ pid })
+  if (token) params.set('token', token)
+  if (siteUrl) params.set('siteUrl', siteUrl)
+  const res = await fetch(`/api/versions?${params}`)
+  if (!res.ok) return []
+  return res.json()
 }

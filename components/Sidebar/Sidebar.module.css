@@ -40,6 +40,7 @@
 .btn:disabled { opacity: 0.35; cursor: default; transform: none; }
 .btnSm { padding: 4px 10px; font-size: 11px; }
 .btnFull { width: 100%; text-align: center; }
+.btnGenerate { width: 100%; text-align: center; padding: 14px; font-size: 13px; letter-spacing: 0.02em; }
 .btnAccent {
   background: var(--accent);
   border-color: var(--accent);
@@ -467,6 +468,27 @@
   transition: color 0.15s;
 }
 .removeBtn:hover { color: var(--danger); }
+
+/* ── version select ── */
+.versionSelect {
+  font-family: var(--mono);
+  font-size: 12px;
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 10px;
+  color: var(--text);
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23a09a92' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+}
+.versionSelect:focus { border-color: var(--accent); }
 
 /* ── fetching state ── */
 .fetchingState {

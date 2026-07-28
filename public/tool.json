@@ -4,7 +4,7 @@
   "toolName": "borealis-readme-gen",
   "scope": "dataset",
   "types": [
-    "explore"
+    "configure"
   ],
   "toolUrl": "https://borealis-readme-gen.vercel.app",
   "httpMethod": "GET",

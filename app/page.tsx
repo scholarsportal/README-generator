@@ -5,7 +5,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import type { DatasetMeta, DataFile, Section, Tab, Status, SignedUrls, GenerationMode, CustomSection } from '@/lib/types'
 import { PINK_SECTIONS, DEFAULT_SECTIONS } from '@/lib/types'
-import { fetchDatasetMeta, fetchFiles, fetchVariables, saveReadme, parseSignedUrls, resolveCallback } from '@/lib/borealis'
+import { fetchDatasetMeta, fetchFiles, fetchVariables, fetchVersions, saveReadme, parseSignedUrls, resolveCallback } from '@/lib/borealis'
 import { generateReadme, isTabular } from '@/lib/template'
 import Header from '@/components/Header'
 import Sidebar from '@/components/Sidebar/Sidebar'
@@ -33,6 +33,8 @@ function App() {
   const [files, setFiles]           = useState<DataFile[]>([])
   const [selectedIds, setSelectedIds]   = useState<Set<number>>(new Set())
   const [variableIds, setVariableIds]   = useState<Set<number>>(new Set())
+  const [version, setVersion]         = useState(":latest")
+  const [versions, setVersions]       = useState<{ label: string; value: string }[]>([])
   const [fetching, setFetching]     = useState(false)
   const [fetchError, setFetchError] = useState('')
 
@@ -107,7 +109,7 @@ function App() {
     try {
       const [metaData, fileData] = await Promise.all([
         fetchDatasetMeta(resolvedPid, resolvedSigned, resolvedToken, site),
-        fetchFiles(resolvedPid, resolvedSigned, resolvedToken, site),
+        fetchFiles(resolvedPid, version, resolvedSigned, resolvedToken, site),
       ])
       setMeta(metaData)
       setFiles(fileData)
@@ -115,6 +117,8 @@ function App() {
       setSelectedIds(new Set(fileData.filter((f) => !f.restricted).map((f) => f.id)))
       // default variable checkboxes unchecked
       setVariableIds(new Set(fileData.filter((f) => !f.restricted && isTabular(f)).map((f) => f.id)))
+      const versionData = await fetchVersions(resolvedPid, resolvedToken, site)
+      setVersions(versionData)
       setStatus({ message: `loaded — ${fileData.length} files found`, state: 'done' })
     } catch (e) {
       setFetchError(String(e))
@@ -263,6 +267,9 @@ function App() {
           onUpdateCustomSection={handleUpdateCustomSection}
           onGenerate={handleGenerate}
           generating={generating}
+          version={version}
+          versions={versions}
+          onVersionChange={setVersion}
           error={fetchError}
         />
         <Viewer

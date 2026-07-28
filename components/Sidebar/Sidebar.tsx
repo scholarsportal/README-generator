@@ -27,6 +27,9 @@ interface SidebarProps {
   onAddCustomSection: (section: CustomSection) => void
   onRemoveCustomSection: (id: string) => void
   onUpdateCustomSection: (id: string, field: 'title' | 'content', value: string) => void
+  version: string
+  versions: { label: string; value: string }[]
+  onVersionChange: (v: string) => void
   onGenerate: () => void
   generating: boolean
   error: string
@@ -38,6 +41,7 @@ export default function Sidebar({
   sections, onToggleSection,
   mode, onModeChange,
   customSections, onAddCustomSection, onRemoveCustomSection, onUpdateCustomSection,
+  version, versions, onVersionChange,
   onGenerate, generating,
   error,
 }: SidebarProps) {
@@ -105,6 +109,22 @@ export default function Sidebar({
                   </div>
                 ))}
             </div>
+          </div>
+        )}
+
+        {/* Version selector */}
+        {meta && versions.length > 0 && (
+          <div>
+            <label className={styles.label}>Version</label>
+            <select
+              className={styles.versionSelect}
+              value={version}
+              onChange={(e) => onVersionChange(e.target.value)}
+            >
+              {versions.map((v) => (
+                <option key={v.value} value={v.value}>{v.label}</option>
+              ))}
+            </select>
           </div>
         )}
 
@@ -296,7 +316,7 @@ export default function Sidebar({
 
         {meta && (
           <button
-            className={`${styles.btn} ${styles.btnAccent} ${styles.btnFull}`}
+            className={`${styles.btn} ${styles.btnAccent} ${styles.btnGenerate}`}
             onClick={onGenerate}
             disabled={!canGenerate}
           >
