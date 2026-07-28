@@ -442,7 +442,7 @@
 .customContentInput {
   font-family: var(--mono);
   font-size: 12px;
-  width: 100%;
+  width: fit-content;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);

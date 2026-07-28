@@ -92,7 +92,7 @@ function App() {
 
   // ── fetch ──────────────────────────────────────────────────────────────────
 
-  async function handleFetch(resolvedPid: string, resolvedSigned?: SignedUrls, resolvedSiteUrl?: string) {
+  async function handleFetch(resolvedPid: string, resolvedSigned?: SignedUrls, resolvedSiteUrl?: string, resolvedVersion?: string) {
     if (!resolvedPid) return
     setFetching(true)
     setFetchError('')
@@ -109,7 +109,7 @@ function App() {
     try {
       const [metaData, fileData] = await Promise.all([
         fetchDatasetMeta(resolvedPid, resolvedSigned, resolvedToken, site),
-        fetchFiles(resolvedPid, version, resolvedSigned, resolvedToken, site),
+        fetchFiles(resolvedPid, resolvedVersion || version, resolvedSigned, resolvedToken, site),
       ])
       setMeta(metaData)
       setFiles(fileData)
@@ -117,8 +117,8 @@ function App() {
       setSelectedIds(new Set(fileData.filter((f) => !f.restricted).map((f) => f.id)))
       // default variable checkboxes unchecked
       setVariableIds(new Set(fileData.filter((f) => !f.restricted && isTabular(f)).map((f) => f.id)))
-      const versionData = await fetchVersions(resolvedPid, resolvedToken, site)
-      setVersions(versionData)
+      if (!resolvedVersion) { const versionData = await fetchVersions(resolvedPid, resolvedToken, site)
+        setVersions(versionData); }
       setStatus({ message: `loaded — ${fileData.length} files found`, state: 'done' })
     } catch (e) {
       setFetchError(String(e))
@@ -269,7 +269,7 @@ function App() {
           generating={generating}
           version={version}
           versions={versions}
-          onVersionChange={setVersion}
+          onVersionChange={(v) => { setVersion(v); handleFetch(pid, signedUrls, siteUrl || undefined, v); }}
           error={fetchError}
         />
         <Viewer
