@@ -20,5 +20,25 @@
         "locale": "{localeCode}"
       }
     ]
-  }
+  },
+  "allowedApiCalls": [
+    {
+      "name": "getDatasetMetadata",
+      "httpMethod": "GET",
+      "urlTemplate": "/api/v1/datasets/:persistentId/versions/:latest?persistentId={datasetPid}",
+      "timeOut": 30
+    },
+    {
+      "name": "getFiles",
+      "httpMethod": "GET",
+      "urlTemplate": "/api/v1/datasets/:persistentId/versions/:latest/files?persistentId={datasetPid}",
+      "timeOut": 30
+    },
+    {
+      "name": "addFile",
+      "httpMethod": "POST",
+      "urlTemplate": "/api/v1/datasets/:persistentId/add?persistentId={datasetPid}",
+      "timeOut": 60
+    }
+  ]
 }

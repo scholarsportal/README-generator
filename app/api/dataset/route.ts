@@ -37,7 +37,9 @@ export async function GET(req: NextRequest) {
     const res = signedUrl
       ? await fetch(signedUrl)
       : await dataverseFetch(
-          `/api/v1/datasets/:persistentId/versions/${version}?persistentId=${encodeURIComponent(pid!)}`,
+          version === ":latest"
+            ? `/api/v1/datasets/:persistentId/?persistentId=${encodeURIComponent(pid!)}`
+            : `/api/v1/datasets/:persistentId/versions/${version}?persistentId=${encodeURIComponent(pid!)}`,
           token,
           siteUrl
         )
@@ -51,8 +53,12 @@ export async function GET(req: NextRequest) {
     }
 
     const json = await res.json()
-    // Version endpoint returns data directly, not wrapped in latestVersion
-    const v = json.data
+    // Handle both versioned and non-versioned response structures
+    const v = version === ":latest" ? json.data.latestVersion : json.data
+    // Handle both versioned and non-versioned response structures
+    const v = version === ":latest" ? json.data.latestVersion : json.data
+    // Handle both versioned and non-versioned response structures
+    const v = version === ":latest" ? json.data.latestVersion : json.data
 
     const cite: Record<string, unknown>[] = v.metadataBlocks?.citation?.fields   || []
     const geo:  Record<string, unknown>[] = v.metadataBlocks?.geospatial?.fields || []
