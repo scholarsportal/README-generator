@@ -55,10 +55,6 @@ export async function GET(req: NextRequest) {
     const json = await res.json()
     // Handle both versioned and non-versioned response structures
     const v = version === ":latest" ? json.data.latestVersion : json.data
-    // Handle both versioned and non-versioned response structures
-    const v = version === ":latest" ? json.data.latestVersion : json.data
-    // Handle both versioned and non-versioned response structures
-    const v = version === ":latest" ? json.data.latestVersion : json.data
 
     const cite: Record<string, unknown>[] = v.metadataBlocks?.citation?.fields   || []
     const geo:  Record<string, unknown>[] = v.metadataBlocks?.geospatial?.fields || []
@@ -161,7 +157,7 @@ export async function GET(req: NextRequest) {
       description,
       keywords:            primitiveField('keyword'),
       subject:             primitiveField('subject'),
-      doi:                 v.datasetPersistentId || pid || '',
+      doi:                 (version === ":latest" ? json.data.persistentUrl : v.datasetPersistentId) || pid || "",
       publisher:           'Borealis',
       year:                v.releaseTime ? new Date(v.releaseTime).getFullYear().toString() : '',
       license:             v.license?.name || '',
