@@ -5,9 +5,9 @@ Readme · MD
 ## Overview
  
 The Borealis README Generator is a web app registered as a Dataverse external tool that consolidates features and metadata from various README generator tools across different institutions into a single, integrated solution. It reads dataset metadata and file information via the Dataverse API and uses that data to populate a structured, customizable README template.
-  
----
- 
+
+![App screenshot](docs/ss.png)
+   
 ## Features
  
 - **Version control** 
@@ -20,7 +20,6 @@ The Borealis README Generator is a web app registered as a Dataverse external to
 - **Download / copy** — export as `.md` or `.txt`
 - **Dark / light mode**
 - **Restricted file support** 
----
  
 ## Workflow
  
@@ -29,7 +28,8 @@ The Borealis README Generator is a web app registered as a Dataverse external to
 3. Select a version and customize which files and metadata sections to include
 4. Generate the README
 5. Save it directly to the dataset, or download/copy it separately
----
+
+![Work flow](docs/workflow.svg)
  
 ## Stack
  
@@ -40,8 +40,6 @@ The Borealis README Generator is a web app registered as a Dataverse external to
 | Styling | CSS Modules + CSS variables |
 | Deployment | Vercel |
 | Data source | Dataverse REST API |
- 
----
  
 ## Local Development
  
@@ -75,13 +73,8 @@ USE_MOCK=true
 curl -X POST "http://localhost:8080/api/v1/admin/externalTools" \
   -H "X-Dataverse-key: YOUR_API_TOKEN" \
   --upload-file public/tool.json
-```
- 
----
- 
+``` 
 ## Tool Registration
  
 The tool is registered as a `configure`-type dataset-level external tool. The `tool.json` file in `public/` defines the tool parameters passed by Dataverse (dataset PID, site URL, locale).
- 
----
  
