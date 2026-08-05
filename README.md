@@ -2,10 +2,6 @@
 Readme · MD
 # Borealis README Generator
  
-> A Dataverse external tool for generating structured README files for research datasets on [Borealis](https://borealisdata.ca), the Canadian Dataverse Repository.
- 
----
- 
 ## Overview
  
 The Borealis README Generator is a web app registered as a Dataverse external tool that consolidates features and metadata from various README generator tools across different institutions into a single, integrated solution. It reads dataset metadata and file information via the Dataverse API and uses that data to populate a structured, customizable README template.
