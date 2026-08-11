@@ -138,6 +138,7 @@ export async function resolveCallback(callbackParam: string): Promise<CallbackRe
   for (const entry of arr) {
     if (entry.name === 'getDatasetMetadata') signedUrls.getDatasetMetadata = entry.signedUrl
     if (entry.name === 'getFiles')           signedUrls.getFiles           = entry.signedUrl
+    if (entry.name === 'getVersions')        signedUrls.getVersions        = entry.signedUrl
     if (entry.name === 'getVariables')       signedUrls.getVariables       = entry.signedUrl
     if (entry.name === 'addFile')            signedUrls.addFile            = entry.signedUrl
   }

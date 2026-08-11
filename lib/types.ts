@@ -29,6 +29,7 @@ export interface DatasetMeta {
 export interface SignedUrls {
   getDatasetMetadata?: string
   getFiles?: string
+  getVersions?: string
   getVariables?: string  // base URL — fileId appended at call time
   addFile?: string
 }

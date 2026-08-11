@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
 
     const json = await res.json()
     // Handle both versioned and non-versioned response structures
-    const v = version === ":latest" ? json.data.latestVersion : json.data
+    const v = json.data.latestVersion ?? json.data
 
     const cite: Record<string, unknown>[] = v.metadataBlocks?.citation?.fields   || []
     const geo:  Record<string, unknown>[] = v.metadataBlocks?.geospatial?.fields || []
