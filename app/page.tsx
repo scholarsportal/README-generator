@@ -2,9 +2,9 @@
 import { Suspense } from 'react'
 import { useState, useCallback, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import type { DatasetMeta, DataFile, Section, Tab, Status, SignedUrls, GenerationMode, CustomSection } from '@/lib/types'
+import type { DatasetMeta, DataFile, Section, Tab, Status, SignedUrls, GenerationMode, CustomSection, VersionEntry } from '@/lib/types'
 import { PINK_SECTIONS, DEFAULT_SECTIONS } from '@/lib/types'
-import { fetchDatasetMeta, fetchFiles, fetchVariables, fetchVersions, saveReadme, parseSignedUrls, resolveCallback } from '@/lib/borealis'
+import { fetchVariables, fetchVersions, saveReadme, parseSignedUrls, resolveCallback } from '@/lib/borealis'
 import { generateReadme, isTabular } from '@/lib/template'
 import Header from '@/components/Header'
 import Sidebar from '@/components/Sidebar/Sidebar'
@@ -29,7 +29,7 @@ function App() {
   const [selectedIds, setSelectedIds]   = useState<Set<number>>(new Set())
   const [variableIds, setVariableIds]   = useState<Set<number>>(new Set())
   const [version, setVersion]         = useState(':latest')
-  const [versions, setVersions]       = useState<{ label: string; value: string }[]>([])
+  const [versions, setVersions]       = useState<VersionEntry[]>([])
   const [fetching, setFetching]     = useState(false)
   const [fetchError, setFetchError] = useState('')
   const [mode, setMode]             = useState<GenerationMode>('basic')
@@ -75,6 +75,17 @@ function App() {
     init()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Apply an already-fetched version to the UI. No network call — every version
+  // arrives fully parsed from the single /api/versions request.
+  function applyVersion(entry: VersionEntry) {
+    setMeta(entry.meta)
+    setFiles(entry.files)
+    setSelectedIds(new Set(entry.files.filter((f) => !f.restricted).map((f) => f.id)))
+    setVariableIds(new Set(entry.files.filter((f) => !f.restricted && isTabular(f)).map((f) => f.id)))
+    setMarkdown('')
+  }
+
   async function handleFetch(resolvedPid: string, resolvedSigned?: SignedUrls, resolvedSiteUrl?: string, resolvedVersion?: string) {
     if (!resolvedPid) return
     setFetching(true)
@@ -87,22 +98,19 @@ function App() {
     setMarkdown('')
     const resolvedToken = token || undefined
     const site = resolvedSiteUrl || siteUrl || undefined
-    const ver = resolvedVersion || version
     try {
-      const [metaData, fileData] = await Promise.all([
-        fetchDatasetMeta(resolvedPid, resolvedSigned, resolvedToken, site, ver),
-        fetchFiles(resolvedPid, ver, resolvedSigned, resolvedToken, site),
-      ])
-      setMeta(metaData)
-      setFiles(fileData)
-      setSelectedIds(new Set(fileData.filter((f) => !f.restricted).map((f) => f.id)))
-      setVariableIds(new Set(fileData.filter((f) => !f.restricted && isTabular(f)).map((f) => f.id)))
-      if (!resolvedVersion) {
-        const versionData = await fetchVersions(resolvedPid, resolvedToken, site)
-        setVersions(versionData)
-        if (versionData.length > 0) setVersion(versionData[0].value)
-      }
-      setStatus({ message: `loaded — ${fileData.length} files found`, state: 'done' })
+      const data = await fetchVersions(resolvedPid, resolvedToken, site, resolvedSigned)
+      if (!data.length) throw new Error('No versions returned for this dataset.')
+
+      setVersions(data)
+
+      // Dataverse returns newest-first, so index 0 is the draft when one exists
+      // and the caller can see it, otherwise the newest published version.
+      const chosen = (resolvedVersion && data.find((d) => d.value === resolvedVersion)) || data[0]
+
+      setVersion(chosen.value)
+      applyVersion(chosen)
+      setStatus({ message: `loaded ${chosen.label} — ${chosen.files.length} files`, state: 'done' })
     } catch (e) {
       setFetchError(String(e))
       setStatus({ message: 'error fetching dataset', state: 'error' })
@@ -110,6 +118,15 @@ function App() {
       setFetching(false)
     }
   }
+
+  const handleVersionChange = useCallback((v: string) => {
+    const entry = versions.find((x) => x.value === v)
+    if (!entry) return
+    setVersion(v)
+    applyVersion(entry)
+    setStatus({ message: `showing ${entry.label} — ${entry.files.length} files`, state: 'done' })
+  }, [versions])
+
   const handleToggleFile = useCallback((id: number, checked: boolean) => {
     setSelectedIds((prev) => {
       const next = new Set(prev)
@@ -176,7 +193,7 @@ function App() {
   async function handleSave(saveToken: string, filename: string) {
     setStatus({ message: 'uploading README to Borealis…', state: 'active' })
     try {
-      await saveReadme(pid, saveToken || token, markdown, signedUrls?.addFile, siteUrl || undefined, filename)
+      await saveReadme(pid, saveToken || token, markdown, signedUrls?.addFile, filename, siteUrl || undefined)
       setStatus({ message: 'README saved to dataset ✓', state: 'done' })
     } catch (e) {
       setStatus({ message: String(e), state: 'error' })
@@ -231,8 +248,8 @@ function App() {
           generating={generating}
           hasReadme={!!markdown}
           version={version}
-          versions={versions}
-          onVersionChange={(v) => { setVersion(v); handleFetch(pid, signedUrls, siteUrl || undefined, v); }}
+          versions={versions.map((v) => ({ label: v.label, value: v.value }))}
+          onVersionChange={handleVersionChange}
           error={fetchError}
         />
         <Viewer

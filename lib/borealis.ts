@@ -1,8 +1,14 @@
-import type { DatasetMeta, DataFile, Variable, SignedUrls } from './types'
+import type { DatasetMeta, DataFile, Variable, SignedUrls, VersionEntry } from './types'
 
+// NOTE: this is the fallback host used when no siteUrl is supplied. It points at
+// production Borealis, so a missing siteUrl during local development silently
+// queries the live repository — which is how a local dataset PID once turned
+// into a confusing "Dataset not found" error.
 export const DEFAULT_SITE = 'https://borealisdata.ca'
 
 // ── Dataset metadata ──────────────────────────────────────────────────────────
+// UNUSED once page.tsx uses fetchVersions for everything. Kept until
+// app/api/dataset/ is deleted; safe to remove together with that route.
 
 export async function fetchDatasetMeta(
   pid: string,
@@ -27,6 +33,8 @@ export async function fetchDatasetMeta(
 }
 
 // ── File listing ──────────────────────────────────────────────────────────────
+// UNUSED once page.tsx uses fetchVersions for everything. Kept until
+// app/api/files/ is deleted; safe to remove together with that route.
 
 export async function fetchFiles(
   pid: string,
@@ -99,6 +107,10 @@ export async function dataverseFetch(path: string, token?: string, siteUrl?: str
 }
 
 // ── Parse signed URLs from Dataverse query params ─────────────────────────────
+// Dataverse does not send a `signedUrls` query parameter in the GET launch flow;
+// signed URLs only arrive via the callback. This exists for the manual
+// ?datasetPid=... entry path and is effectively dead. Remove once that path is
+// retired.
 
 export function parseSignedUrls(searchParams: URLSearchParams): SignedUrls | undefined {
   const raw = searchParams.get('signedUrls')
@@ -109,6 +121,7 @@ export function parseSignedUrls(searchParams: URLSearchParams): SignedUrls | und
     for (const entry of arr) {
       if (entry.name === 'getDatasetMetadata') map.getDatasetMetadata = entry.signedUrl
       if (entry.name === 'getFiles')           map.getFiles           = entry.signedUrl
+      if (entry.name === 'getVersions')        map.getVersions        = entry.signedUrl
       if (entry.name === 'getVariables')       map.getVariables       = entry.signedUrl
       if (entry.name === 'addFile')            map.addFile            = entry.signedUrl
     }
@@ -148,16 +161,32 @@ export async function resolveCallback(callbackParam: string): Promise<CallbackRe
 }
 
 // ── Dataset versions ──────────────────────────────────────────────────────────
+// Single source of truth: returns every version with its parsed metadata and its
+// own file list, so switching versions in the UI needs no further requests.
+//
+// This is the only call that has to work. A signed URL is pinned to the exact
+// string it was signed for, so a per-version fetch is impossible — but the
+// /versions endpoint returns full metadataBlocks and files for every version at
+// once, which sidesteps the limitation entirely.
 
 export async function fetchVersions(
   pid: string,
   token?: string,
-  siteUrl?: string
-): Promise<{ label: string; value: string }[]> {
+  siteUrl?: string,
+  signed?: SignedUrls
+): Promise<VersionEntry[]> {
   const params = new URLSearchParams({ pid })
   if (token) params.set('token', token)
   if (siteUrl) params.set('siteUrl', siteUrl)
-  const res = await fetch(`/api/versions?${params}`)
-  if (!res.ok) return []
+  const headers: Record<string, string> = {}
+  if (signed?.getVersions) headers['x-signed-url'] = signed.getVersions
+
+  const res = await fetch(`/api/versions?${params}`, { headers })
+  // Throws rather than returning [] — the old silent empty array made a 404
+  // against the wrong host look like a dataset with no versions.
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error((err as { message?: string }).message || `HTTP ${res.status}`)
+  }
   return res.json()
 }

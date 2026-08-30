@@ -47,6 +47,16 @@ export interface DataFile {
   restricted: boolean
 }
 
+// ── VersionEntry ─────────────────────────────────────────────────────────────────────
+
+export interface VersionEntry {
+  label: string
+  value: string
+  state: string
+  meta: DatasetMeta
+  files: DataFile[]
+}
+
 // ── File tree (built client-side from directoryLabel paths) ───────────────────
 
 export interface TreeNode {
